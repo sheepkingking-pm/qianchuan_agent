@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>巨量千川 - AI创意</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      color: #333;
+      background: #f5f7fa;
+    }
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+    .header {
+      height: 56px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-wrapper .logo-icon {
+      width: auto;
+      height: auto;
+      background: transparent;
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin-right: 4px;
+    }
+    .nav { display: flex; align-items: center; gap: 0; }
+    .nav-item {
+      padding: 0 16px;
+      height: 56px;
+      line-height: 56px;
+      background: transparent;
+      border: none;
+      color: #666;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-item:hover { color: #0066FF; }
+    .nav-item.active { color: #0066FF; font-weight: 600; }
+    .new-badge {
+      font-size: 8px;
+      padding: 1px 4px;
+      background: #FF4D4F;
+      color: #fff;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-left: 3px;
+      line-height: 12px;
+    }
+    .orange-badge {
+      font-size: 8px;
+      padding: 1px 4px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+      color: #fff;
+      border-radius: 4px;
+      font-weight: 600;
+      line-height: 12px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .header-icon:hover {
+      background: #f5f7fa;
+      color: #333;
+    }
+    .header-icon.user {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .header-icon.user:hover {
+      background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+    }
+    .header-icon .badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+      padding: 1px 5px;
+      background: #FF4D4F;
+      color: white;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .main-content {
+      flex: 1;
+      display: flex;
+    }
+    .left-panel {
+      width: 260px;
+      background: #fff;
+      border-right: 1px solid #e8e8e8;
+      display: flex;
+      flex-direction: column;
+    }
+    .left-header {
+      padding: 16px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .logo-text {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .new-chat-btn {
+      width: 100%;
+      padding: 10px;
+      background: #0066FF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .new-chat-btn:hover { background: #0047CC; }
+    .new-chat-btn-outline {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: #0066FF;
+      border: 2px solid #0066FF;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .new-chat-btn-outline:hover {
+      background: #E6F4FF;
+    }
+    .collapse-btn {
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      background: white;
+      border: 1px solid #e8e8e8;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .collapse-btn:hover {
+      color: #666;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    .menu-text {
+      display: inline;
+    }
+    .menu-items {
+      padding: 8px 0;
+    }
+    .menu-item {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: #666;
+    }
+    .menu-item:hover {
+      background: #f5f7fa;
+      color: #333;
+    }
+    .history-section {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 16px 16px;
+    }
+    .history-title {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 8px;
+      padding: 4px 0;
+    }
+    .task-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 4px;
+    }
+    .task-item:hover { background: #f5f7fa; }
+    .task-item.active { background: #E6F4FF; }
+    .task-title {
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .task-time {
+      font-size: 12px;
+      color: #999;
+    }
+    .center-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      padding: 80px 40px 40px;
+    }
+    .hero-section {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .hero-avatar {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: #999;
+    }
+    .input-section {
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .input-box {
+      background: #fff;
+      border: 2px solid #0066FF;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 48px;
+      box-shadow: 0 4px 20px rgba(0, 102, 255, 0.15);
+    }
+    .textarea-wrapper {
+      padding: 16px 20px 10px;
+    }
+    .textarea {
+      width: 100%;
+      min-height: 60px;
+      border: none;
+      font-size: 15px;
+      outline: none;
+      resize: none;
+      line-height: 1.5;
+    }
+    .input-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-top: 1px solid #e8e8e8;
+      background: #fafafa;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      color: #666;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .action-btn:hover {
+      border-color: #0066FF;
+      color: #0066FF;
+    }
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      background: #0066FF;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .send-btn:hover { background: #0047CC; }
+    .quick-templates {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    .template-item {
+      padding: 10px 16px;
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .template-item:hover {
+      border-color: #0066FF;
+      color: #0066FF;
+    }
+    .video-section {
+      margin-top: 60px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .video-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #e8e8e8;
+      cursor: pointer;
+      position: relative;
+    }
+    .video-container {
+      aspect-ratio: 16/9;
+      position: relative;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      overflow: hidden;
+    }
+    .video-player {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.4);
+      color: white;
+      font-size: 24px;
+      transition: opacity 0.3s;
+    }
+    .video-card:hover .video-overlay {
+      opacity: 0;
+    }
+    .video-player.playing {
+      display: block;
+    }
+    .video-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+    .play-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .video-tag {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .video-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .video-card:hover .video-info {
+      opacity: 1;
+    }
+    .video-card:hover .play-overlay {
+      opacity: 1;
+    }
+    .video-title {
+      font-size: 13px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .video-stats {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .product-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .product-modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 500px;
+      max-height: 70vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 18px;
+      color: #999;
+    }
+    .modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .product-option {
+      padding: 12px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .product-option:hover {
+      border-color: #0066FF;
+      background: #f0f7ff;
+    }
+    .product-option-img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .product-option-fallback {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+    .selected-product {
+      margin-bottom: 12px;
+    }
+    .product-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: #E6F4FF;
+      border: 1px solid #0066FF;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .product-tag:hover {
+      background: #D4EFFF;
+      border-color: #0052CC;
+    }
+    .product-tag-img {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+    .product-tag-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+    .product-tag-duration {
+      font-size: 12px;
+      color: #0066FF;
+      background: white;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .product-tag-edit {
+      color: #0066FF;
+      opacity: 0.7;
+    }
+    .product-option-img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #E6F4FF 0%, #D4EFFF 100%);
+      border: 2px solid #0066FF;
+    }
+    .product-option-info h4 {
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    .product-option-info p {
+      font-size: 12px;
+      color: #999;
+    }
+    .product-thumbnail {
+      width: 24px;
+      height: 24px;
+      object-fit: cover;
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+    .product-select-btn {
+      position: relative;
+    }
+    .product-img-wrapper {
+      position: relative;
+      width: 48px;
+      height: 48px;
+    }
+    .product-img-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #E6F4FF 0%, #D4EFFF 100%);
+      border: 2px solid #0066FF;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-wrapper">
+          <span class="logo-icon">巨量千川</span>
+        </div>
+        <nav class="nav">
+          <button class="nav-item">首页</button>
+          <button class="nav-item">乘方 <span class="orange-badge">新升级</span></button>
+          <button class="nav-item">全域投放</button>
+          <button class="nav-item">品牌投放</button>
+          <button class="nav-item active">AI创意 <span class="new-badge">NEW</span></button>
+          <button class="nav-item">数据</button>
+          <button class="nav-item">工具</button>
+          <button class="nav-item">财务</button>
+          <button class="nav-item">营销</button>
+          <button class="nav-item">学堂</button>
+          <button class="nav-item">成长伙伴</button>
+        </nav>
+      </div>
+      <div class="header-right">
+        <button class="header-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+        <button class="header-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+            <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+        </button>
+        <button class="header-icon notification">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="badge">99+</span>
+        </button>
+        <button class="header-icon user">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+        <button class="header-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="left-panel" id="leftPanel">
+        <div class="left-header">
+          <div class="logo-section">
+            <div class="logo-icon">AI</div>
+            <div class="logo-text">创意 Agent</div>
+          </div>
+          <button class="new-chat-btn-outline" onclick="createNewChat()">
+            <span>+</span> 新对话
+          </button>
+        </div>
+        <div class="menu-items">
+          <div class="menu-item">
+            <span>💡</span> <span class="menu-text">灵感</span>
+          </div>
+          <div class="menu-item">
+            <span>📁</span> <span class="menu-text">资产</span>
+          </div>
+          <div class="menu-item">
+            <span>📊</span> <span class="menu-text">数据</span>
+          </div>
+        </div>
+        <div class="history-section">
+          <div class="history-title">历史记录</div>
+          <div class="task-item active" onclick="goToChat()">
+            <div class="task-title">DO双层养肤气垫粉饼</div>
+            <div class="task-time">刚刚</div>
+          </div>
+          <div class="task-item">
+            <div class="task-title">XX口红 - 情人节限定</div>
+            <div class="task-time">昨天</div>
+          </div>
+          <div class="task-item">
+            <div class="task-title">XX精华液 - 补水保湿</div>
+            <div class="task-time">3天前</div>
+          </div>
+          <div class="view-all" style="color: #0066FF; font-size: 13px; padding: 8px 0; cursor: pointer;">查看全部 ></div>
+        </div>
+        <button class="collapse-btn" id="collapseBtn" onclick="toggleCollapse()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="center-panel">
+        <div class="hero-section">
+          <h1 class="hero-title">Hi，我是千川创意Agent</h1>
+          <p class="hero-subtitle">帮你打造优质素材，让生意即刻爆发</p>
+        </div>
+
+        <div class="input-section">
+          <div class="input-box">
+            <div class="textarea-wrapper">
+              <textarea id="demandInput" class="textarea" placeholder="告诉我，你今天想创造一点什么？"></textarea>
+            </div>
+            <div class="input-actions">
+              <div class="action-buttons">
+                <button class="action-btn product-select-btn" id="productSelectBtn" onclick="showProductModal()">
+                  <span id="productIcon">+</span>
+                  <img id="productThumbnail" src="" alt="" class="product-thumbnail" style="display: none;">
+                  <span id="productText">选择商品</span>
+                </button>
+                <button class="action-btn" id="videoBtn" onclick="showVideoModal()">
+                  <span id="videoIcon">📹</span>
+                  <img id="videoThumbnail" src="" alt="视频缩略图" class="product-thumbnail" style="display: none;" onerror="this.style.display='none'; document.getElementById('videoIcon').style.display='inline'; console.log('Failed to load thumbnail');">
+                  <span id="videoText">参考视频</span>
+                </button>
+                <button class="action-btn">
+                  <span>🤖</span> Agent模式
+                </button>
+              </div>
+              <button class="send-btn" onclick="goToChat()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 2L11 13"/>
+                  <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-templates">
+          <div class="template-item" onclick="selectTemplate('帮我写一个美妆产品的短视频脚本，主打保湿功效')">
+            帮我写一个美妆产品的短视频脚本，主打保湿功效
+          </div>
+          <div class="template-item" onclick="selectTemplate('帮我生成一个3C数码的短视频，受众18～30岁青年男子')">
+            帮我生成一个3C数码的短视频，受众18～30岁青年男子
+          </div>
+          <div class="template-item" onclick="selectTemplate('帮我找下热点视频，并解析下组成元素')">
+            帮我找下热点视频，并解析下组成元素
+          </div>
+        </div>
+
+        <div class="video-section">
+          <div class="section-title">行业爆款视频</div>
+          <div class="video-grid">
+            <div class="video-card" onmouseenter="playVideo('video1')" onmouseleave="pauseVideo('video1')">
+              <div class="video-container" id="video1">
+                <video class="video-player" id="player1" muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                  <source src="videos/video_5.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay">▶</div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">行业爆款案例1</div>
+                <div class="video-stats">参考热门视频创意</div>
+              </div>
+            </div>
+            <div class="video-card" onmouseenter="playVideo('video2')" onmouseleave="pauseVideo('video2')">
+              <div class="video-container" id="video2">
+                <video class="video-player" id="player2" muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                  <source src="videos/video_2.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay">▶</div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">行业爆款案例2</div>
+                <div class="video-stats">参考热门视频创意</div>
+              </div>
+            </div>
+            <div class="video-card" onmouseenter="playVideo('video3')" onmouseleave="pauseVideo('video3')">
+              <div class="video-container" id="video3">
+                <video class="video-player" id="player3" muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                  <source src="videos/video_6.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay">▶</div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">行业爆款案例3</div>
+                <div class="video-stats">参考热门视频创意</div>
+              </div>
+            </div>
+            <div class="video-card" onmouseenter="playVideo('video4')" onmouseleave="pauseVideo('video4')">
+              <div class="video-container" id="video4">
+                <video class="video-player" id="player4" muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                  <source src="videos/video_1.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay">▶</div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">行业爆款案例4</div>
+                <div class="video-stats">参考热门视频创意</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="videoModal" class="product-modal">
+    <div class="modal-content" style="width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title">参考视频</div>
+        <button class="modal-close" onclick="closeVideoModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 13px; color: #333; margin-bottom: 8px;">视频链接</div>
+          <input type="text" id="videoUrl" placeholder="请输入视频链接" style="width: 100%; padding: 12px; border: 1px solid #e8e8e8; border-radius: 8px; font-size: 14px;">
+        </div>
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 13px; color: #333; margin-bottom: 8px;">本地上传</div>
+          <div id="uploadArea" style="border: 2px dashed #d9d9d9; border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: border-color 0.3s;" onclick="document.getElementById('videoFile').click()">
+            <div style="font-size: 24px; margin-bottom: 8px;">📁</div>
+            <div style="font-size: 14px; color: #666;">点击或拖拽上传视频文件</div>
+            <div style="font-size: 12px; color: #999; margin-top: 4px;">支持 MP4、MOV 格式</div>
+            <input type="file" id="videoFile" accept="video/*" style="display: none;">
+          </div>
+        </div>
+        <div style="margin-bottom: 16px; padding-top: 16px; border-top: 1px solid #e8e8e8;">
+          <div style="font-size: 13px; color: #333; margin-bottom: 8px;">快速选择</div>
+          <div class="quick-video-item" onclick="selectQuickVideo()" style="display: flex; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; cursor: pointer; transition: background 0.2s;">
+            <div style="width: 60px; height: 40px; background: #1a1a1a; border-radius: 6px; overflow: hidden; margin-right: 12px; flex-shrink: 0;">
+              <video muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                <source src="videos/明星们都在用的防晒保湿遮瑕多效合一气垫BB.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div style="flex: 1; overflow: hidden;">
+              <div style="font-size: 13px; color: #333; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">明星们都在用的防晒保湿遮瑕多效合一气垫BB</div>
+              <div style="font-size: 12px; color: #999; margin-top: 2px;">点击快速使用此参考视频</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: center; gap: 16px; padding: 16px 24px; border-top: 1px solid #e8e8e8;">
+        <button onclick="closeVideoModal()" style="padding: 12px 32px; background: #f5f5f5; border: 1px solid #e8e8e8; border-radius: 8px; color: #666; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">取消</button>
+        <button onclick="confirmVideo()" style="padding: 12px 32px; background: #0066FF; border: none; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="productModal" class="product-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">选择商品</div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="product-list">
+          <div class="product-option" onclick="selectProduct('DO双层养肤气垫粉饼保湿控油持久定妆', '美妆 - 面部彩妆 - 气垫BB', 15)">
+            <div class="product-img-wrapper">
+              <img class="product-option-img" id="productListImg" alt="DO双层养肤气垫粉饼保湿控油持久定妆" onerror="this.style.display='none'; this.parentElement.querySelector('.product-img-placeholder').style.display='flex';">
+              <div class="product-img-placeholder">
+                <span>💄</span>
+              </div>
+            </div>
+            <div class="product-option-info">
+              <h4>DO双层养肤气垫粉饼保湿控油持久定妆</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedProduct = null;
+    let isCollapsed = false;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const productListImg = document.getElementById('productListImg');
+      if (productListImg) {
+        productListImg.src = encodeURI('images/DO气垫bb头图.jpg');
+      }
+    });
+
+    function selectTemplate(text) {
+      document.getElementById('demandInput').value = text;
+    }
+
+    function showProductModal() {
+      document.getElementById('productModal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('productModal').classList.remove('show');
+    }
+
+    var selectedVideo = null;
+
+    function showVideoModal() {
+      document.getElementById('videoModal').classList.add('show');
+    }
+
+    function closeVideoModal() {
+      document.getElementById('videoModal').classList.remove('show');
+      document.getElementById('videoUrl').value = '';
+      document.getElementById('videoFile').value = '';
+    }
+
+    function selectQuickVideo() {
+      selectedVideo = {
+        title: '明星们都在用的防晒保湿遮瑕多效合一气垫BB',
+        url: 'videos/明星们都在用的防晒保湿遮瑕多效合一气垫BB.mp4'
+      };
+      confirmVideo();
+    }
+
+    function confirmVideo() {
+      var url = document.getElementById('videoUrl').value;
+      var file = document.getElementById('videoFile').files[0];
+      
+      if (!selectedVideo && !url && !file) {
+        alert('请输入视频链接、选择视频文件或点击快速选择');
+        return;
+      }
+
+      if (!selectedVideo) {
+        selectedVideo = {
+          title: url || file.name,
+          url: url || URL.createObjectURL(file)
+        };
+      }
+
+      console.log('Setting video thumbnail...');
+      var icon = document.getElementById('videoIcon');
+      var thumbnail = document.getElementById('videoThumbnail');
+      var text = document.getElementById('videoText');
+      
+      console.log('Icon element:', icon);
+      console.log('Thumbnail element:', thumbnail);
+      console.log('Text element:', text);
+      
+      icon.style.display = 'none';
+      thumbnail.src = encodeURI('images/参考视频缩略图.jpg');
+      thumbnail.style.display = 'inline-block';
+      text.innerText = selectedVideo.title;
+      document.getElementById('videoBtn').classList.add('selected');
+      
+      updateInputText();
+      closeVideoModal();
+    }
+
+    function updateInputText() {
+      var input = document.getElementById('demandInput');
+      if (selectedProduct && selectedVideo) {
+        input.value = '帮我为所选商品生成一个带货视频，参考视频如下';
+        input.style.color = '#333';
+      } else if (selectedProduct) {
+        input.value = `帮我为所选商品生成一个带货视频，时长${selectedProduct.duration || 15}秒`;
+        input.style.color = '#333';
+      } else if (selectedVideo) {
+        input.value = '需要选择商品让我知道你的创作对象是啥哦';
+        input.style.color = '#999';
+      } else {
+        input.value = '';
+        input.style.color = '#333';
+      }
+    }
+
+    function selectProduct(name, category, duration = 15) {
+      selectedProduct = { name, category, duration };
+      updateInputText();
+      
+      const icon = document.getElementById('productIcon');
+      const text = document.getElementById('productText');
+      const thumbnail = document.getElementById('productThumbnail');
+      
+      icon.style.display = 'none';
+      text.textContent = name;
+      thumbnail.src = encodeURI('images/DO气垫bb头图.jpg');
+      thumbnail.style.display = 'inline-block';
+      
+      closeModal();
+    }
+
+    function goToChat() {
+      window.location.href = 'chat.html';
+    }
+
+    function createNewChat() {
+      document.getElementById('demandInput').value = '';
+      const taskItems = document.querySelectorAll('.task-item');
+      taskItems.forEach(item => item.classList.remove('active'));
+    }
+
+    function toggleCollapse() {
+      const panel = document.getElementById('leftPanel');
+      const collapseBtn = document.getElementById('collapseBtn');
+      const menuTexts = document.querySelectorAll('.menu-text');
+      const logoText = document.querySelector('.logo-text');
+      const newChatBtn = document.querySelector('.new-chat-btn-outline');
+      const historySection = document.querySelector('.history-section');
+
+      if (!isCollapsed) {
+        panel.style.width = '56px';
+        logoText.style.display = 'none';
+        newChatBtn.innerHTML = '<span>+</span>';
+        menuTexts.forEach(el => el.style.display = 'none');
+        historySection.style.display = 'none';
+        collapseBtn.style.transform = 'rotate(180deg)';
+        isCollapsed = true;
+      } else {
+        panel.style.width = '260px';
+        logoText.style.display = 'block';
+        newChatBtn.innerHTML = '<span>+</span> 新对话';
+        menuTexts.forEach(el => el.style.display = 'inline');
+        historySection.style.display = 'block';
+        collapseBtn.style.transform = 'rotate(0deg)';
+        isCollapsed = false;
+      }
+    }
+
+    function playVideo(videoId) {
+      const player = document.getElementById('player' + videoId.replace('video', ''));
+      if (player) {
+        player.play();
+      }
+    }
+
+    function pauseVideo(videoId) {
+      const player = document.getElementById('player' + videoId.replace('video', ''));
+      if (player) {
+        player.pause();
+      }
+    }
+
+    document.getElementById('productModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

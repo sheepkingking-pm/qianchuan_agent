@@ -1,0 +1,3037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>抖音电商·千川 - AI创意Agent - 对话详情</title>
+  <style>
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; color: #333; background: #f5f7fa; }
+    
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+    
+    .header {
+      height: 56px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-left { display: flex; align-items: center; gap: 32px; }
+    
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-text { font-size: 18px; font-weight: 700; color: #333; }
+    
+    .nav { display: flex; align-items: center; gap: 0; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 16px;
+      height: 56px;
+      background: transparent;
+      border: none;
+      color: #666;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .nav-item:hover { color: #0066FF; }
+    .nav-item.active { color: #0066FF; font-weight: 600; }
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 2px;
+      background: #0066FF;
+      border-radius: 1px;
+    }
+    .nav-item.highlight { color: #0066FF; }
+    
+    .new-badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      background: linear-gradient(135deg, #FF4D4F 0%, #FF3A3E 100%);
+      color: #fff;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: #999;
+      cursor: pointer;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+    
+    .chat-panel {
+      width: 380px;
+      background: #fff;
+      border-right: 1px solid #e8e8e8;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      z-index: 50;
+    }
+    
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .chat-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .chat-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .action-btn {
+      padding: 6px 12px;
+      background: #f5f5f5;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+    }
+    
+    .action-btn:hover {
+      background: #e8e8e8;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    
+    .message {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .message.ai .avatar {
+      background: linear-gradient(135deg, #0066FF 0%, #0047CC 100%);
+    }
+    
+    .message.user .avatar {
+      background: linear-gradient(135deg, #00C853 0%, #00B84E 100%);
+    }
+    
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .avatar span {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .message-content {
+      flex: 1;
+      max-width: calc(100% - 46px);
+    }
+    
+    .message-text {
+      background: #f5f7fa;
+      padding: 10px 14px;
+      border-radius: 10px;
+      line-height: 1.6;
+      color: #333;
+      font-size: 13px;
+    }
+    
+    .message.user .message-text {
+      background: linear-gradient(135deg, #0066FF 0%, #0047CC 100%);
+      color: #fff;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+    
+    .chat-input-section {
+      padding: 12px 16px;
+      border-top: 1px solid #f0f0f0;
+    }
+    
+    .chat-input-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f5f7fa;
+      border-radius: 20px;
+      padding: 6px 14px;
+    }
+    
+    .chat-input-field {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      color: #333;
+    }
+    
+    .chat-input-field::placeholder {
+      color: #999;
+    }
+    
+    .chat-send-btn {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0066FF 0%, #0047CC 100%);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .chat-suggestions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .chat-suggestion-tag {
+      padding: 5px 10px;
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 14px;
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+    }
+    
+    .chat-suggestion-tag:hover {
+      border-color: #0066FF;
+      color: #0066FF;
+    }
+    
+    .content-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: #f5f7fa;
+    }
+    
+    .progress-section {
+      padding: 16px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    
+    .progress-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .progress-icon {
+      width: 20px;
+      height: 20px;
+      background: #0066FF;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+    }
+    
+    .progress-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .progress-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    
+    .progress-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: calc(50% + 24px);
+      width: calc(100% - 48px);
+      height: 4px;
+      background: #e8e8e8;
+      z-index: 0;
+      border-radius: 2px;
+    }
+    
+    .progress-step.active:not(:last-child)::after {
+      background: linear-gradient(90deg, #0066FF, #0066FF);
+    }
+    
+    .progress-step.completed:not(:last-child)::after {
+      background: linear-gradient(90deg, #00C853, #00C853);
+    }
+    
+    .step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      font-size: 14px;
+      font-weight: 600;
+      color: #999;
+      transition: all 0.3s ease;
+    }
+    
+    .progress-step.active .step-dot {
+      background: #0066FF;
+      color: #fff;
+      transform: scale(1.1);
+    }
+    
+    .progress-step.completed .step-dot {
+      background: #00C853;
+      color: #fff;
+    }
+    
+    .step-label {
+      font-size: 13px;
+      color: #999;
+      margin-top: 8px;
+      text-align: center;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .progress-step.active .step-label {
+      color: #0066FF;
+      font-weight: 600;
+    }
+    
+    .progress-step.completed .step-label {
+      color: #00C853;
+      font-weight: 600;
+    }
+    
+    .stage-detail-section {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    .stage-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+    
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .stage-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .stage-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #0066FF 0%, #0047CC 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+    }
+    
+    .stage-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .stage-status {
+      padding: 4px 12px;
+      background: #E8F5E9;
+      border-radius: 12px;
+      font-size: 12px;
+      color: #2E7D32;
+    }
+    
+    .stage-status.processing {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+    
+    .stage-status.completed {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    
+    .stage-divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 20px 0;
+    }
+    
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 14px;
+      background: #0066FF;
+      border-radius: 2px;
+    }
+    
+    .input-content {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .input-label {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+    
+    .input-value {
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .system-action {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .action-icon {
+      width: 24px;
+      height: 24px;
+      background: #E3F2FD;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1976D2;
+      flex-shrink: 0;
+    }
+    
+    .action-text {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+    }
+    
+    .output-content {
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    
+    .output-header {
+      padding: 12px 16px;
+      background: #fafafa;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0;
+    }
+    
+    .output-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .output-meta {
+      font-size: 11px;
+      color: #999;
+    }
+    
+    .output-body {
+      padding: 16px;
+    }
+    
+    .output-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    
+    .output-item:last-child {
+      border-bottom: none;
+    }
+    
+    .output-thumb {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      background: #f5f5f5;
+      object-fit: cover;
+    }
+    
+    .output-info {
+      flex: 1;
+    }
+    
+    .output-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    
+    .output-desc {
+      font-size: 12px;
+      color: #999;
+      line-height: 1.5;
+    }
+    
+    .output-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    
+    .output-tag {
+      padding: 2px 8px;
+      background: #E3F2FD;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #1976D2;
+    }
+    
+    .interactive-section {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .interactive-btn {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #0066FF;
+      border-radius: 10px;
+      background: #fff;
+      color: #0066FF;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .interactive-btn:hover {
+      background: #F0F5FF;
+    }
+    
+    .interactive-btn.primary {
+      background: linear-gradient(135deg, #0066FF 0%, #0047CC 100%);
+      border: none;
+      color: #fff;
+    }
+    
+    .interactive-btn.primary:hover {
+      opacity: 0.9;
+    }
+    
+    .stage-detail-section {
+      position: relative;
+      padding-bottom: 100px;
+    }
+    
+    .interactive-section-wrapper {
+      position: sticky;
+      bottom: 0;
+      background: #f5f7fa;
+      padding: 16px 24px;
+      z-index: 40;
+    }
+    
+    @media (max-width: 1024px) {
+      .chat-panel { width: 320px; }
+    }
+    
+    @media (max-width: 768px) {
+      .main-content { flex-direction: column; }
+      .chat-panel { width: 100%; border-right: none; border-bottom: 1px solid #e8e8e8; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <nav class="nav">
+          <button class="nav-item">首页</button>
+          <button class="nav-item">乘方</button>
+          <button class="nav-item">全域投放</button>
+          <button class="nav-item">品牌投放</button>
+          <button class="nav-item highlight active" onclick="window.location.href='index.html'">AI创意 <span class="new-badge">NEW</span></button>
+          <button class="nav-item">数据</button>
+          <button class="nav-item">工具</button>
+          <button class="nav-item">财务</button>
+          <button class="nav-item">营销</button>
+          <button class="nav-item">学堂</button>
+        </nav>
+      </div>
+      <div class="header-right">
+        <button class="header-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+            <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+        </button>
+        <button class="header-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="chat-panel">
+        <div class="chat-header">
+          <span class="chat-title">创作任务详情</span>
+          <div class="chat-actions">
+            <button class="action-btn">分享</button>
+            <button class="action-btn">复制</button>
+          </div>
+        </div>
+        
+        <div class="chat-messages">
+          <div class="message user">
+            <div class="avatar"><span>U</span></div>
+            <div class="message-content">
+              <div class="message-text">帮我为商品DO双层养肤气垫粉饼保湿控油持久定妆生成一个30秒带货视频</div>
+              <div class="message-time">10:30</div>
+            </div>
+          </div>
+          
+          <div class="message ai">
+            <div class="avatar"><span>AI</span></div>
+            <div class="message-content">
+              <div class="message-text">收到你的需求，将结合商品特点和目标人群为商品DO双层养肤气垫粉饼保湿控油持久定妆创作一个带货视频，创作将按照专业的创作步骤展开，每个步骤您可以参与修改或者直接确认进入下一步。</div>
+              <div class="message-time">10:31</div>
+            </div>
+          </div>
+          
+          <div class="message ai">
+            <div class="avatar"><span>AI</span></div>
+            <div class="message-content">
+              <div class="message-text">现在进入第一步：商品解析。我将为您自动抓取商品信息、提炼核心卖点、分析目标人群，并进行平台合规预检。</div>
+              <div class="message-time">10:32</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chat-input-section">
+          <div class="chat-input-box">
+            <input 
+              type="text" 
+              class="chat-input-field" 
+              placeholder="输入您的需求，我来帮您完成..."
+            />
+            <button class="chat-send-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-panel">
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-step active">
+              <div class="step-dot">1</div>
+              <div class="step-label">商品解析</div>
+            </div>
+            <div class="progress-step">
+              <div class="step-dot">2</div>
+              <div class="step-label">创意灵感</div>
+            </div>
+            <div class="progress-step">
+              <div class="step-dot">3</div>
+              <div class="step-label">脚本生成</div>
+            </div>
+            <div class="progress-step">
+              <div class="step-dot">4</div>
+              <div class="step-label">分镜预览</div>
+            </div>
+            <div class="progress-step">
+              <div class="step-dot">5</div>
+              <div class="step-label">成片</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-detail-section">
+          <!-- 内容将由JavaScript动态加载 -->
+        </div>
+        
+        <div class="interactive-section-wrapper">
+          <div class="interactive-section">
+            <button class="interactive-btn primary" onclick="goToNextStage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              确认进入下一阶段
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // 打字机效果函数
+    function typeWriterEffect(element, text, speed = 30) {
+      let i = 0;
+      element.textContent = '';
+      element.classList.add('typing');
+      
+      function type() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else {
+          element.classList.remove('typing');
+        }
+      }
+      
+      type();
+    }
+    
+    // 添加AI消息并带有打字机效果
+    function addAIMessageWithTyping(text, callback) {
+      var messageContainer = document.querySelector('.chat-messages');
+      var newMessage = document.createElement('div');
+      newMessage.className = 'message ai';
+      newMessage.innerHTML = `
+        <div class="avatar"><span>AI</span></div>
+        <div class="message-content">
+          <div class="message-text"></div>
+          <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+      `;
+      messageContainer.appendChild(newMessage);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+      
+      var textElement = newMessage.querySelector('.message-text');
+      typeWriterEffect(textElement, text, 25);
+      
+      // 打字完成后执行回调
+      if (callback) {
+        var checkTyping = setInterval(function() {
+          if (!textElement.classList.contains('typing')) {
+            clearInterval(checkTyping);
+            setTimeout(callback, 300);
+          }
+        }, 100);
+      }
+    }
+    
+    // 页面加载时模拟AI回复的打字效果
+    document.addEventListener('DOMContentLoaded', function() {
+      var aiMessages = document.querySelectorAll('.message.ai .message-text');
+      var messages = [];
+      
+      // 保存所有AI消息内容并隐藏
+      aiMessages.forEach(function(msg, index) {
+        messages.push(msg.textContent);
+        msg.textContent = '';
+        msg.parentElement.parentElement.style.display = 'none';
+      });
+      
+      // 模拟AI思考时间后开始回复
+      setTimeout(function() {
+        // 显示第一条AI消息并开始打字
+        var firstMsg = aiMessages[0];
+        firstMsg.parentElement.parentElement.style.display = 'flex';
+        typeWriterEffect(firstMsg, messages[0], 25);
+        
+        // 等待第一条消息打字完成后，显示第二条消息
+        var checkFirst = setInterval(function() {
+          if (!firstMsg.classList.contains('typing')) {
+            clearInterval(checkFirst);
+            
+            // 模拟思考时间
+            setTimeout(function() {
+              // 显示第二条AI消息并开始打字
+              var secondMsg = aiMessages[1];
+              secondMsg.parentElement.parentElement.style.display = 'flex';
+              typeWriterEffect(secondMsg, messages[1], 25);
+              
+              // 等待第二条消息打字完成后，开始加载右侧内容
+              var checkSecond = setInterval(function() {
+                if (!secondMsg.classList.contains('typing')) {
+                  clearInterval(checkSecond);
+                  loadStageOneWithAnimation();
+                }
+              }, 100);
+            }, 600);
+          }
+        }, 100);
+      }, 500);
+    });
+    
+    // 阶段一加载动画：先显示系统处理，再显示商品解析结果
+    function loadStageOneWithAnimation() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      
+      // 先只显示系统处理部分
+      stageDetailSection.innerHTML = `
+        <div class="stage-card" id="stage1-loading">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action loading-action">
+              <span class="action-icon loading-icon">📥</span>
+              <span class="action-text">信息自动抓取：调用巨量千川商品库接口，自动获取商品标题、详情页图文、SKU属性、价格（日常价/活动价）、用户评论等信息</span>
+            </div>
+            <div class="system-action loading-action" style="opacity: 0.3;">
+              <span class="action-icon">✨</span>
+              <span class="action-text">卖点与场景提炼：利用大语言模型分析抓取到的信息，提炼核心卖点（如成分、功效、材质、设计、价格优势）和适用场景/人群（如"熬夜党"、"敏感肌"、"户外运动爱好者"）</span>
+            </div>
+            <div class="system-action loading-action" style="opacity: 0.3;">
+              <span class="action-icon">✅</span>
+              <span class="action-text">平台合规预检：基于平台广告审核规则，对商品信息和卖点文案进行初步扫描，识别潜在的违规词或夸大宣传风险</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 模拟加载过程
+      var actions = document.querySelectorAll('.loading-action');
+      var icons = document.querySelectorAll('.loading-icon');
+      
+      // 添加加载动画样式
+      icons.forEach(function(icon) {
+        icon.style.animation = 'pulse 1s infinite';
+      });
+      
+      setTimeout(function() {
+        actions[1].style.transition = 'opacity 0.5s';
+        actions[1].style.opacity = '1';
+        
+        setTimeout(function() {
+          actions[2].style.transition = 'opacity 0.5s';
+          actions[2].style.opacity = '1';
+          
+          setTimeout(function() {
+            // 显示完整的商品解析结果
+            showStageOne();
+          }, 800);
+        }, 800);
+      }, 800);
+    }
+    
+    function showActions(el) {
+      el.querySelector('.actions').style.opacity = '1';
+    }
+    
+    function hideActions(el) {
+      el.querySelector('.actions').style.opacity = '0';
+    }
+    
+    function showTagActions(el) {
+      var closeBtn = document.createElement('span');
+      closeBtn.innerHTML = '×';
+      closeBtn.style.cssText = 'position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; background: #ff4d4f; border-radius: 50%; color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer;';
+      closeBtn.onclick = function(e) {
+        e.stopPropagation();
+        el.remove();
+      };
+      el.appendChild(closeBtn);
+    }
+    
+    function hideTagActions(el) {
+      var closeBtn = el.querySelector('span:last-child');
+      if (closeBtn && closeBtn.innerHTML === '×') {
+        closeBtn.remove();
+      }
+    }
+    
+    function editItem(btn) {
+      var card = btn.parentElement.parentElement;
+      var title = card.querySelector('div:first-child');
+      var desc = card.querySelector('div:nth-child(2)');
+      
+      var newTitle = prompt('请输入卖点标题:', title.textContent);
+      if (newTitle) {
+        title.textContent = newTitle;
+      }
+      
+      var newDesc = prompt('请输入卖点描述:', desc.textContent);
+      if (newDesc) {
+        desc.textContent = newDesc;
+      }
+    }
+    
+    function deleteItem(btn) {
+      var card = btn.parentElement.parentElement;
+      if (confirm('确定删除这个卖点吗？')) {
+        card.remove();
+      }
+    }
+    
+    function deleteImage(btn) {
+      var container = btn.parentElement;
+      if (confirm('确定删除这张图片吗？')) {
+        container.remove();
+      }
+    }
+    
+    function uploadImage(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var imgContainer = document.createElement('div');
+          imgContainer.style.cssText = 'position: relative;';
+          imgContainer.innerHTML = `<img src="${e.target.result}" alt="上传图片" style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/><button onclick="deleteImage(this)" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>`;
+          var grid = document.querySelector('#卖点-container').parentElement.parentElement.previousElementSibling.querySelector('[style*="grid-template-columns"]');
+          grid.appendChild(imgContainer);
+        };
+        reader.readAsDataURL(input.files[0]);
+        input.value = '';
+      }
+    }
+    
+    function addSellingPoint() {
+      var container = document.getElementById('卖点-container');
+      var title = prompt('请输入卖点标题（如：🔥 持久控油）:');
+      if (!title) return;
+      
+      var desc = prompt('请输入卖点描述:');
+      if (!desc) return;
+      
+      var newCard = document.createElement('div');
+      newCard.style.cssText = 'padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;';
+      newCard.onmouseenter = function() { showActions(this); };
+      newCard.onmouseleave = function() { hideActions(this); };
+      
+      newCard.innerHTML = `
+        <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">${title}</div>
+        <div style="font-size: 12px; color: #666;">${desc}</div>
+        <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+          <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+          <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+        </div>
+      `;
+      
+      container.appendChild(newCard);
+    }
+    
+    function addTag() {
+      var container = document.getElementById('人群场景-container');
+      var tagText = prompt('请输入新标签:');
+      if (!tagText) return;
+      
+      var type = prompt('请选择标签类型（1=人群，2=场景）:');
+      var bgColor = type === '1' ? '#FFF3E0' : '#E8F5E9';
+      var textColor = type === '1' ? '#E65100' : '#2E7D32';
+      
+      var newTag = document.createElement('span');
+      newTag.className = 'tag-item';
+      newTag.style.cssText = `padding: 6px 12px; background: ${bgColor}; border-radius: 20px; font-size: 13px; color: ${textColor}; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;`;
+      newTag.textContent = tagText;
+      newTag.onmouseenter = function() { showTagActions(this); };
+      newTag.onmouseleave = function() { hideTagActions(this); };
+      
+      container.appendChild(newTag);
+    }
+    
+    function goToNextStage() {
+      var currentStage = document.querySelector('.progress-step.active');
+      var stages = document.querySelectorAll('.progress-step');
+      var currentIndex = Array.from(stages).indexOf(currentStage);
+      
+      if (currentIndex < stages.length - 1) {
+        currentStage.classList.remove('active');
+        currentStage.classList.add('completed');
+        
+        var nextStage = stages[currentIndex + 1];
+        nextStage.classList.add('active');
+        
+        if (currentIndex === 0) {
+          // 清空右侧内容，显示待加载状态
+          var stageDetailSection = document.querySelector('.stage-detail-section');
+          stageDetailSection.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
+              <div style="width: 48px; height: 48px; border: 3px solid #0066FF; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+              <div style="margin-top: 16px; font-size: 14px; color: #666;">正在进入创意灵感阶段...</div>
+            </div>
+          `;
+          showStageTwo();
+        } else if (currentIndex === 1) {
+          // 这个由 confirmPlanAndGoNext 处理
+        } else if (currentIndex === 2) {
+          // 这个由 confirmStageThreeAndGoNext 处理
+        }
+      }
+    }
+    
+    function goToPrevStage() {
+      var currentStage = document.querySelector('.progress-step.active');
+      var stages = document.querySelectorAll('.progress-step');
+      var currentIndex = Array.from(stages).indexOf(currentStage);
+      
+      if (currentIndex > 0) {
+        currentStage.classList.remove('active');
+        
+        var prevStage = stages[currentIndex - 1];
+        prevStage.classList.remove('completed');
+        prevStage.classList.add('active');
+        
+        if (currentIndex === 1) {
+          showStageOne();
+        } else if (currentIndex === 2) {
+          renderStageTwoContent();
+        } else if (currentIndex === 3) {
+          showStageThree();
+        } else if (currentIndex === 4) {
+          showStageFour();
+        }
+      }
+    }
+    
+    function showStageOne() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action">
+              <span class="action-icon">📥</span>
+              <span class="action-text">信息自动抓取：调用巨量千川商品库接口，自动获取商品标题、详情页图文、SKU属性、价格（日常价/活动价）、用户评论等信息</span>
+            </div>
+            <div class="system-action">
+              <span class="action-icon">✨</span>
+              <span class="action-text">卖点与场景提炼：利用大语言模型分析抓取到的信息，提炼核心卖点（如成分、功效、材质、设计、价格优势）和适用场景/人群（如"熬夜党"、"敏感肌"、"户外运动爱好者"）</span>
+            </div>
+            <div class="system-action">
+              <span class="action-icon">✅</span>
+              <span class="action-text">平台合规预检：基于平台广告审核规则，对商品信息和卖点文案进行初步扫描，识别潜在的违规词或夸大宣传风险</span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title">商品解析结果</div>
+            
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-header">
+                <span class="output-title">DO双层养肤气垫粉饼基本信息</span>
+              </div>
+              <div class="output-body">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+                  <div style="position: relative;">
+                    <img src="images/商品主图1.jpg" 
+                         alt="商品主图1" 
+                         style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+                  </div>
+                  <div style="position: relative;">
+                    <img src="images/商品主图2.jpg" 
+                         alt="商品主图2" 
+                         style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+                  </div>
+                  <div style="position: relative;">
+                    <img src="images/商品主图3.jpg" 
+                         alt="商品主图3" 
+                         style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                  <label for="upload-image" style="padding: 6px 12px; background: #fff; border: 1px dashed #0066FF; border-radius: 4px; font-size: 12px; color: #0066FF; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    上传图片
+                    <input id="upload-image" type="file" accept="image/*" onchange="uploadImage(this)" style="display: none;"/>
+                  </label>
+                </div>
+                <div style="padding: 20px; background: #f8fafc; border-radius: 8px;">
+                  <div style="display: flex; justify-content: center; gap: 60px; align-items: center;">
+                    <div style="text-align: center;">
+                      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">商品ID</div>
+                      <div style="font-size: 13px; color: #333; font-weight: 500;">123666888</div>
+                    </div>
+                    <div style="width: 1px; height: 30px; background: #e8e8e8;"></div>
+                    <div style="text-align: center;">
+                      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">商品品类</div>
+                      <div style="font-size: 13px; color: #333; font-weight: 500;">美妆 - 面部彩妆 - 气垫BB</div>
+                    </div>
+                    <div style="width: 1px; height: 30px; background: #e8e8e8;"></div>
+                    <div style="text-align: center;">
+                      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">商品链接</div>
+                      <a href="#" target="_blank" style="font-size: 13px; color: #0066FF; text-decoration: none;">点击查看</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-header">
+                <span class="output-title">商品核心卖点</span>
+                <span style="font-size: 11px; color: #999; margin-left: 4px;">鼠标覆盖卖点后，可以编辑或者删除卖点</span>
+              </div>
+              <div class="output-body">
+                <div id="卖点-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">💫 自然清透</div>
+                    <div style="font-size: 12px; color: #666;">妆感自然清透，光学柔焦不假面，打造原生雾感肌</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🔥 持久控油</div>
+                    <div style="font-size: 12px; color: #666;">持妆控油效果好，上妆不油腻，出油出汗不易脱妆</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">✨ 服帖贴合</div>
+                    <div style="font-size: 12px; color: #666;">服帖贴合肌肤，可填平毛孔细纹</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🎯 遮瑕力佳</div>
+                    <div style="font-size: 12px; color: #666;">遮瑕力佳，可叠加打造妈生皮妆效</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🔍 微气孔设计</div>
+                    <div style="font-size: 12px; color: #666;">微气孔设计，取粉均匀锁鲜持久</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">☀️ 高倍防晒</div>
+                    <div style="font-size: 12px; color: #666;">高倍防晒，多效合一（防晒、遮瑕、保湿）</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">💨 质地轻薄</div>
+                    <div style="font-size: 12px; color: #666;">质地轻薄，妆感细腻有光泽</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🎁 精致包装</div>
+                    <div style="font-size: 12px; color: #666;">包装设计精致质感佳</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                  <button onclick="addSellingPoint()" style="padding: 6px 12px; background: #fff; border: 1px dashed #0066FF; border-radius: 4px; font-size: 12px; color: #0066FF; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    新增卖点
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-header">
+                <span class="output-title">人群与场景建议</span>
+                <span style="font-size: 11px; color: #999; margin-left: 4px;">鼠标覆盖卖点后，可以修改或者删除人群场景</span>
+              </div>
+              <div class="output-body">
+                <div id="人群场景-container" style="display: flex; flex-wrap: gap: 8px;">
+                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">上班族</span>
+                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">学生党</span>
+                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">敏感肌人群</span>
+                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">油皮/混油皮</span>
+                  <span class="tag-item" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">日常通勤</span>
+                  <span class="tag-item" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">约会聚会</span>
+                  <span class="tag-item" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">职场办公</span>
+                </div>
+                <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                  <button onclick="addTag()" style="padding: 6px 12px; background: #fff; border: 1px dashed #0066FF; border-radius: 4px; font-size: 12px; color: #0066FF; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    新增标签
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="output-content">
+              <div class="output-header" style="justify-content: space-between;">
+                <span class="output-title">合规风险提示</span>
+                <span style="color: #2E7D32; font-weight: 500;">✓ 通过</span>
+              </div>
+              <div class="output-body">
+                <div style="font-size: 13px; color: #2E7D32; padding: 12px; background: #E8F5E9; border-radius: 8px; text-align: center;">
+                  已完成合规预检，未检测到违规词或夸大宣传风险
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      `;
+      
+      var buttonWrapper = document.querySelector('.interactive-section-wrapper');
+      if (buttonWrapper) {
+        buttonWrapper.innerHTML = `
+          <div class="interactive-section">
+            <button class="interactive-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              返回上一步
+            </button>
+            <button class="interactive-btn primary" onclick="goToNextStage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              确认进入下一阶段
+            </button>
+          </div>
+        `;
+      }
+    }
+    
+    var currentPlanVersion = 1;
+    var selectedPlan = null;
+    
+    function showStageTwo() {
+      var messageContainer = document.querySelector('.chat-messages');
+      var newMessage = document.createElement('div');
+      newMessage.className = 'message ai';
+      newMessage.innerHTML = `
+        <div class="avatar"><span>AI</span></div>
+        <div class="message-content">
+          <div class="message-text"></div>
+          <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+      `;
+      messageContainer.appendChild(newMessage);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+      
+      var textElement = newMessage.querySelector('.message-text');
+      var aiMessage = '好滴，你已经确认商品解析内容了，下面我将基于这些信息为你用以下几种方式设计创意灵感，请你选择确认';
+      
+      // 500ms延迟后开始打字
+      setTimeout(function() {
+        typeWriterEffect(textElement, aiMessage, 25);
+        
+        // 等待打字完成后加载右侧内容
+        var checkTyping = setInterval(function() {
+          if (!textElement.classList.contains('typing')) {
+            clearInterval(checkTyping);
+            loadStageTwoWithAnimation();
+          }
+        }, 100);
+      }, 500);
+    }
+    
+    // 阶段二加载动画：先显示系统处理，再显示创意灵感方案
+    function loadStageTwoWithAnimation() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      var buttonWrapper = document.querySelector('.interactive-section-wrapper');
+      
+      // 先只显示系统处理部分
+      stageDetailSection.innerHTML = `
+        <div class="stage-card" id="stage2-loading">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action loading-action">
+              <span class="action-icon loading-icon">💡</span>
+              <span class="action-text">根据商品解析信息，结合行业爆款视频的叙事和拍摄框架（包括开头钩子、中间转场、片尾强化意愿等）用大模型为商品生成合适的创意灵感，同时为了拓展灵感的多样性，也结合商品的卖点通过情景剧等形式进行发散设计，你可以选择一种方案确认或者跟我共创优化灵感</span>
+            </div>
+          </div>
+          <div style="opacity: 0.3;">
+            <div class="section-title">创意灵感方案</div>
+            <div style="padding: 16px; background: #f5f5f5; border-radius: 8px; text-align: center; color: #999; font-size: 13px;">
+              正在生成创意灵感...
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 添加加载动画样式
+      var icon = stageDetailSection.querySelector('.loading-icon');
+      if (icon) {
+        icon.style.animation = 'pulse 1s infinite';
+      }
+      
+      // 模拟加载过程后显示完整内容
+      setTimeout(function() {
+        selectedPlan = null;
+        renderStageTwoContent();
+        
+        // 更新按钮
+        buttonWrapper.innerHTML = `
+          <div class="interactive-section">
+            <button class="interactive-btn" onclick="goToPrevStage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              返回上一步
+            </button>
+            <button class="interactive-btn primary" onclick="confirmPlanAndGoNext()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              确认进入下一阶段
+            </button>
+          </div>
+        `;
+      }, 1500);
+    }
+    
+    function renderStageTwoContent() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action">
+              <span class="action-icon">💡</span>
+              <span class="action-text">根据商品解析信息，结合行业爆款视频的叙事和拍摄框架（包括开头钩子、中间转场、片尾强化意愿等）用大模型为商品生成合适的创意灵感，同时为了拓展灵感的多样性，也结合商品的卖点通过情景剧等形式进行发散设计，你可以选择一种方案确认或者跟我共创优化灵感</span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title">创意灵感方案</div>
+            
+            ${renderPlanOne()}
+            
+            ${renderPlanTwo()}
+          </div>
+        </div>
+      `;
+      
+      var buttonWrapper = document.querySelector('.interactive-section-wrapper');
+      if (buttonWrapper) {
+        buttonWrapper.innerHTML = `
+          <div class="interactive-section">
+            <button class="interactive-btn" onclick="goToPrevStage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              返回上一步
+            </button>
+            <button class="interactive-btn primary" onclick="confirmPlanAndGoNext()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              确认进入下一阶段
+            </button>
+          </div>
+        `;
+      }
+      
+      // 添加视频hover播放功能
+      setTimeout(function() {
+        var videoContainers = document.querySelectorAll('.stage-detail-section .reference-video');
+        videoContainers.forEach(function(video) {
+          var container = video.parentElement;
+          var overlay = container.querySelector('.video-overlay');
+          
+          container.addEventListener('mouseenter', function() {
+            if (overlay) overlay.style.opacity = '0';
+            video.play();
+          });
+          
+          container.addEventListener('mouseleave', function() {
+            video.pause();
+            if (overlay) overlay.style.opacity = '1';
+          });
+        });
+      }, 100);
+    }
+    
+    function renderPlanOne() {
+      var planData = currentPlanVersion === 1 ? {
+        summary: '视频以通勤女性视角展开，通过展示传统气垫厚重假面、脱妆斑驳的尴尬场景引发共鸣。随后重点展示产品的核心优势：通过特写瑕疵遮盖过程体现强遮瑕力，对比普通厚重底妆展现清透妆感，模拟出门后出油场景验证持妆控油效果。同步介绍产品多效合一、服帖肌肤、微气孔设计的附加亮点，最后强调能高效解决通勤化妆痛点，引导用户体验。',
+        videoImages: ['参考视频1.mp4', '参考视频2.mp4', '参考视频3.mp4'],
+        hookTitle: '吸睛开头-场景共鸣+身份认同',
+        hookDesc: '通过直击职场女性通勤化妆时遇到的底妆痛点，引发目标人群的强烈共鸣，快速锁定精准用户。痛点场景特写（特写传统气垫上妆后厚重假面、出油脱妆斑驳的脸部细节，快速触发用户的相似经历共鸣。）',
+        sellingPoints: '遮瑕力佳（可叠加打造原生雾感肌）、妆感自然清透（光学柔焦不假面）、持妆控油效果好（出油出汗不易脱妆）多效合一（具备防晒、遮瑕、保湿功能，SPF40+PA+++高倍防晒）、服帖贴合肌肤（可填平毛孔细纹）、微气孔设计（取粉均匀锁鲜持久）',
+        expression: '场景化对比+细节特写（对比传统气垫厚重假面、脱妆斑驳的尴尬场景，特写展示本品遮盖脸部瑕疵、打造清透肌的过程，模拟出油出汗场景验证持妆控油效果，直观突出产品优势。）',
+        audience: '都市职场女性',
+        painPoints: '通勤时间紧张，化妆步骤繁琐、传统底妆厚重假面，出油后易脱妆斑驳、难找到兼具遮瑕与清透感的底妆',
+        persona: '职场美妆好物分享官25-35岁女性，妆容精致干练，身着职业通勤装，语气亲切自然，给人可靠、懂职场需求的感觉。'
+      } : {
+        summary: '开头用痛点对比吸睛，展示传统气垫脱妆斑驳与本品持妆效果；以种草达人视角，通过特写瑕疵遮盖、控油持妆画面，突出核心卖点；最后强调多效合一便捷性，引导下单。',
+        videoImages: ['参考视频4.mp4', '参考视频5.mp4', '参考视频6.mp4'],
+        hookTitle: '吸睛开头-痛点直击型',
+        hookDesc: '点明通勤脱妆斑驳问题，引出本品解决优势对比展示（传统气垫脱妆脸与本品持妆脸的特写对比）',
+        sellingPoints: '持妆控油不脱妆、遮瑕力佳、多效合一（防晒+遮瑕+保湿）妆感自然清透、服帖不卡粉',
+        expression: '特写对比（瑕疵涂抹前后对比、出油肌肤控油效果展示）',
+        audience: '25-35岁都市职场女性',
+        painPoints: '通勤出油脱妆斑驳、遮瑕与轻薄难兼顾、化妆步骤繁琐',
+        persona: '种草达人25-35岁，妆容精致，穿着时尚，语言亲切有感染力'
+      };
+      
+      var borderStyle = selectedPlan === 1 ? 'border: 3px solid #0066FF;' : 'border: 2px solid #e8e8e8;';
+      
+      return `
+        <div class="output-content" style="margin-bottom: 16px; ${borderStyle} cursor: pointer;" onclick="selectPlan(1)">
+          <div class="output-header" style="display: flex; align-items: center; justify-content: space-between;">
+            <span class="output-title" style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 24px; height: 24px; background: #0066FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: bold;">1</span>
+              方案一：参考行业爆款
+            </span>
+            <span onclick="event.stopPropagation(); switchPlanVersion()" style="font-size: 12px; color: #0066FF; cursor: pointer;">换一批同行视频</span>
+          </div>
+          <div class="output-body">
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">灵感梗概</div>
+              <div style="font-size: 13px; color: #333; line-height: 1.6;">
+                ${planData.summary}
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+              <div style="margin-bottom: 12px;">
+                <div style="font-size: 13px; font-weight: 500; color: #333;">同行爆款案例</div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
+                  <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                    <source src="videos/${encodeURI(planData.videoImages[0])}" type="video/mp4">
+                  </video>
+                  <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
+                    <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
+                  </div>
+                  <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '1' : '4'}</div>
+                </div>
+                <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
+                  <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                    <source src="videos/${encodeURI(planData.videoImages[1])}" type="video/mp4">
+                  </video>
+                  <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
+                    <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
+                  </div>
+                  <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '2' : '5'}</div>
+                </div>
+                <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
+                  <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                    <source src="videos/${encodeURI(planData.videoImages[2])}" type="video/mp4">
+                  </video>
+                  <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
+                    <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
+                  </div>
+                  <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '3' : '6'}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: #999; margin-bottom: 8px;">同行爆款手法解析</div>
+              
+              <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">吸睛开头-场景共鸣+身份认同</div>
+                <div style="font-size: 12px; color: #666; line-height: 1.5;">
+                  ${planData.hookDesc}
+                </div>
+              </div>
+              
+              <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">产品卖点</div>
+                <div style="font-size: 12px; color: #666; line-height: 1.5;">
+                  ${planData.sellingPoints}
+                </div>
+              </div>
+              
+              <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">卖点表现形式</div>
+                <div style="font-size: 12px; color: #666; line-height: 1.5;">
+                  ${planData.expression}
+                </div>
+              </div>
+            </div>
+            
+            <div style="padding: 12px; background: #f0f5ff; border-radius: 8px;">
+              <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">面向人群和痛点</div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                <div>
+                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">推广人群</div>
+                  <div style="font-size: 12px; color: #333;">${planData.audience}</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">人群痛点</div>
+                  <div style="font-size: 12px; color: #333;">${planData.painPoints}</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">口播人设</div>
+                  <div style="font-size: 12px; color: #333;">${planData.persona}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderPlanTwo() {
+      var borderStyle = selectedPlan === 2 ? 'border: 3px solid #00C853;' : 'border: 2px solid #e8e8e8;';
+      
+      return `
+        <div class="output-content" style="${borderStyle} cursor: pointer;" onclick="selectPlan(2)">
+          <div class="output-header">
+            <span class="output-title" style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 24px; height: 24px; background: #00C853; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: bold;">2</span>
+              方案二：情景剧发散
+            </span>
+          </div>
+          <div class="output-body">
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">灵感梗概</div>
+              <div style="font-size: 13px; color: #333; line-height: 1.6;">
+                以都市25-35岁职场女性的晨间通勤场景为背景，通过同事A因赶时间化妆步骤繁琐、底妆斑驳焦虑，同事B推荐气垫BB，A试用后快速打造清透持妆肌的剧情，展现产品多效合一、持妆控油、遮瑕服帖的核心优势，搭配紧急赶时间的紧张感和妆效对比，贴合目标人群日常痛点，最后以A轻松出门的场景号召尝试。
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: #999; margin-bottom: 8px;">手法解析</div>
+              
+              <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">突出卖点</div>
+                <div style="font-size: 12px; color: #666; line-height: 1.5;">
+                  多效合一（防晒、遮瑕、保湿）、持妆控油不脱妆、遮瑕力佳服帖妆感自然清透、微气孔取粉均匀、包装精致
+                </div>
+              </div>
+              
+              <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">卖点表现形式</div>
+                <div style="font-size: 12px; color: #666; line-height: 1.5;">
+                  1. 剧情演绎：A抱怨"又要涂防晒又要遮痘印，来不及了"，B递气垫说"这个一步搞定"；<br>
+                  2. 前后对比：特写A原底妆斑驳卡粉，试用后毛孔痘印隐形、肌肤清透；<br>
+                  3. 细节展示：特写气垫微气孔取粉，轻拍即服帖，后续快速出门不脱妆。
+                </div>
+              </div>
+            </div>
+            
+            <div style="padding: 12px; background: #E8F5E9; border-radius: 8px;">
+              <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">面向人群和痛点</div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                <div>
+                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">推广人群</div>
+                  <div style="font-size: 12px; color: #333;">都市25-35岁职场女性</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">人群痛点</div>
+                  <div style="font-size: 12px; color: #333;">通勤化妆步骤繁琐耗时，底妆易脱妆斑驳，遮瑕与轻薄难兼顾</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">口播人设</div>
+                  <div style="font-size: 12px; color: #333;">A：26岁，职场新人，赶时间时妆容斑驳，身着职业装，显得焦虑；B：28岁，干练白领，妆容精致，身着职业装，语气轻松可靠。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function switchPlanVersion() {
+      currentPlanVersion = currentPlanVersion === 1 ? 2 : 1;
+      renderStageTwoContent();
+    }
+    
+    function selectPlan(planNumber) {
+      selectedPlan = planNumber;
+      renderStageTwoContent();
+    }
+    
+    function confirmPlanAndGoNext() {
+      if (!selectedPlan) {
+        alert('请先选择一个方案！');
+        return;
+      }
+      
+      var messageContainer = document.querySelector('.chat-messages');
+      var newMessage = document.createElement('div');
+      newMessage.className = 'message ai';
+      newMessage.innerHTML = `
+        <div class="avatar"><span>AI</span></div>
+        <div class="message-content">
+          <div class="message-text"></div>
+          <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+      `;
+      messageContainer.appendChild(newMessage);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+      
+      var textElement = newMessage.querySelector('.message-text');
+      var aiMessage = `好滴，你已经确认方案${selectedPlan}了，下面我将围绕这个灵感为你设计脚本`;
+      
+      // 清空右侧内容，显示待加载状态
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
+          <div style="width: 48px; height: 48px; border: 3px solid #0066FF; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <div style="margin-top: 16px; font-size: 14px; color: #666;">正在进入脚本生成阶段...</div>
+        </div>
+      `;
+      
+      goToNextStage();
+      
+      // 500ms延迟后开始打字
+      setTimeout(function() {
+        typeWriterEffect(textElement, aiMessage, 25);
+        
+        // 等待打字完成后加载右侧内容
+        var checkTyping = setInterval(function() {
+          if (!textElement.classList.contains('typing')) {
+            clearInterval(checkTyping);
+            loadStageThreeWithAnimation();
+          }
+        }, 100);
+      }, 500);
+    }
+    
+    // 阶段三加载动画：先显示系统处理，再显示脚本内容
+    function loadStageThreeWithAnimation() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      
+      // 先只显示系统处理部分
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action loading-action">
+              <span class="action-icon loading-icon">📝</span>
+              <span class="action-text">根据你选定的创意灵感，我将为你生成专业的视频脚本，包含完整的台词、镜头语言、时长建议等内容，你可以选择确认或进行微调</span>
+            </div>
+          </div>
+          <div style="opacity: 0.3;">
+            <div class="section-title">脚本设计</div>
+            <div style="padding: 16px; background: #f5f5f5; border-radius: 8px; text-align: center; color: #999; font-size: 13px;">
+              正在生成脚本...
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 添加加载动画样式
+      var icon = stageDetailSection.querySelector('.loading-icon');
+      if (icon) {
+        icon.style.animation = 'pulse 1s infinite';
+      }
+      
+      // 模拟加载过程后显示完整内容
+      setTimeout(function() {
+        showStageThree();
+      }, 1500);
+    }
+    
+    function showStageThree() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action">
+              <span class="action-icon">📝</span>
+              <span class="action-text">根据你选定的创意灵感，我将为你生成专业的视频脚本，包含完整的台词、镜头语言、时长建议等内容，你可以选择确认或进行微调</span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title" style="display: flex; align-items: center;">脚本设计<span style="font-size: 11px; color: #999; margin-left: 4px; font-weight: normal;">鼠标点击台词，进入台词编辑模式修改台词哦</span></div>
+            
+            <div class="output-content">
+              <div class="output-body">
+                <div style="overflow-x: auto;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px;">
+                    <thead>
+                      <tr style="background: #1a1a1a; color: #fff;">
+                        <th style="padding: 12px; text-align: left; border: 1px solid #333; width: 120px;">镜头</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #333; width: 35%;">人物台词</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #333; width: 45%;">画面描述</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #333; width: 80px;">预估时间</th>
+                      </tr>
+                    </thead>
+                    <tbody style="background: #fafafa;">
+                      <!-- 镜头1 -->
+                      <tr>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; background: #f5f5f5;">
+                          <div style="font-weight: 600; margin-bottom: 4px;">镜头1</div>
+                          <div style="font-size: 12px; color: #666;">新人赶时间底妆翻车,同事犀利吐槽</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>又要涂防晒又要遮痘印，来不及了！</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>怎么还是卡粉啊...</span>
+                          </div>
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
+                            <span>你这底妆斑驳成这样，客户见了不吓跑？</span>
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div style="margin-bottom: 8px;"><strong>中景：</strong>清晨办公区茶水间，冷白顶光下氛围匆忙。<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫，使用气垫前肌肤粗糙暗沉）站在镜子前，双手捧脸端详，手指戳着脸上斑驳的脱妆晒黑的痘印仍明显泛红，眉头紧锁，嘴角下撇，右手腕不断撸过手表看时间。</div>
+                          <div style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫，使用气垫前肌肤粗糙暗沉）低头用手指顺脸颊推粉底，指尖仍卡在粉底液的痕迹仍在，拇指轻刮眼周一道粉。</div>
+                          <div><strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致职场、低马尾、白西装搭配精致配饰）站在<strong>人物1</strong>身后，双手抱臂，目光扫过她斑驳的底妆，嘴角微微带着调侃，身体重心偏向一侧。</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约9s</td>
+                      </tr>
+                      
+                      <!-- 镜头2 -->
+                      <tr>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; background: #f5f5f5;">
+                          <div style="font-weight: 600; margin-bottom: 4px;">镜头2</div>
+                          <div style="font-size: 12px; color: #666;">气垫救场显效,新人惊喜验证</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
+                            <span>试试这个，一步搞定防晒遮瑕。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>这也太服帖了吧？痘印都看不见了！</span>
+                          </div>
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
+                            <span>持妆八小时都不脱，下午见客户也不怕。</span>
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致时尚、低马尾、白西装搭配精致配饰）从精致的手缝包里掏出一个精致的黑色气垫盒，盒面带有清晰品牌logo，双手递到<strong>人物1</strong>面前，指尖轻轻叩击气垫盒表面，眉梢微扬、眼神笃定；固定机位近景，镜头推近气垫盒logo细节。</div>
+                          <div style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）对着镜子轻拍自己的脸颊，指尖划过清透的底妆（对比之前的粗糙肌肤），眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。</div>
+                          <div><strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致时尚、低马尾、白西装搭配精致配饰）靠在门框上，双臂交叉，看着<strong>人物1</strong>的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约9s</td>
+                      </tr>
+                      
+                      <!-- 镜头3 -->
+                      <tr>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; background: #f5f5f5;">
+                          <div style="font-weight: 600; margin-bottom: 4px;">镜头3</div>
+                          <div style="font-size: 12px; color: #666;">核心卖点直观展示</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>这款气垫BB，防晒遮瑕一步到位。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>微气孔设计取粉均匀，上脸服帖不卡粉。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>打造原生雾感肌，像天生好皮肤。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>高倍防晒，通勤化妆不再繁琐。</span>
+                          </div>
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span>现在下单，职场精致肌轻松拥有。</span>
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div style="margin-bottom: 8px;"><strong>近景：</strong>干净白色背景、柔光均匀打亮。<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）面向镜头，右手托着黑色气垫盒，盒面品牌logo清晰可见，左手食指轻点气垫表面，眼神认真直视；固定机位近景，镜头聚焦气垫盒logo。</div>
+                          <div style="margin-bottom: 8px;"><strong>特写：</strong>柔光下，气垫微气孔扑蘸取粉底，粉量均匀附着在粉扑上，镜头缓慢推近粉扑细节；微距特写，背景虚化。</div>
+                          <div style="margin-bottom: 8px;"><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）用粉扑轻拍自己的右脸颊，底妆自然清透（对比之前的粗糙肌肤），她对着镜头转脸展示侧脸，嘴角上扬、机位近景，收音突出轻拍声。</div>
+                          <div style="margin-bottom: 8px;"><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）面向镜头，右手举起气垫盒展示精致包装，盒面品牌logo清晰，左手食指指向SPF40+PA+++标识，眼神笃定；固定机位近景，镜头先推近logo再移至SPF标识。</div>
+                          <div><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）双手捧着气垫盒，嘴角弧度自然，眼神直视镜头；固定机位近景，镜头稳定。</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约15s</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title" style="display: flex; align-items: center;">素材清单<span style="font-size: 11px; color: #999; margin-left: 4px; font-weight: normal;">鼠标点击人物特征和商品图片，可以进行修改哦</span></div>
+            
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-header">
+                <span class="output-title">角色清单</span>
+              </div>
+              <div class="output-body">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+                  <div style="padding: 16px; background: #f5f7fa; border-radius: 8px;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                      <div style="width: 120px; height: 160px; flex-shrink: 0; border-radius: 8px; overflow: hidden;">
+                        <img src="images/人物1形象.jpg" alt="人物1形象" style="width: 100%; height: 100%; object-fit: cover;">
+                      </div>
+                      <div style="flex: 1;">
+                        <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px;">人物1</div>
+                        <div style="margin-bottom: 8px;">
+                          <span style="font-size: 12px; color: #666;">类型：</span>
+                          <span style="font-size: 13px; color: #333; background: #e3f2fd; padding: 2px 8px; border-radius: 4px;">主角</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                          <span style="font-size: 12px; color: #666;">性别：</span>
+                          <span style="font-size: 13px; color: #333;">女</span>
+                        </div>
+                        <div>
+                          <div style="font-size: 12px; color: #666; margin-bottom: 4px;">特征：</div>
+                          <div 
+                            class="character-description" 
+                            data-character="1"
+                            style="font-size: 13px; color: #333; line-height: 1.6; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s;"
+                            onmouseenter="this.style.background='#e3f2fd';"
+                            onmouseleave="this.style.background='transparent';"
+                            onclick="editCharacterDescription(this)"
+                          >
+                            职场新人，圆脸，齐肩短发，穿浅蓝衬衫配西裤，使用气垫前肌肤略粗糙，面部有泛红痘印，赶时间时妆容斑驳卡粉，性格略带急躁但愿意尝试新东西
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style="padding: 16px; background: #f5f7fa; border-radius: 8px;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                      <div style="width: 120px; height: 160px; flex-shrink: 0; border-radius: 8px; overflow: hidden;">
+                        <img src="images/人物2形象.jpg" alt="人物2形象" style="width: 100%; height: 100%; object-fit: cover;">
+                      </div>
+                      <div style="flex: 1;">
+                        <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px;">人物2</div>
+                        <div style="margin-bottom: 8px;">
+                          <span style="font-size: 12px; color: #666;">类型：</span>
+                          <span style="font-size: 13px; color: #333; background: #e8f5e9; padding: 2px 8px; border-radius: 4px;">配角</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                          <span style="font-size: 12px; color: #666;">与主角关系：</span>
+                          <span style="font-size: 13px; color: #333;">女主同事</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                          <span style="font-size: 12px; color: #666;">性别：</span>
+                          <span style="font-size: 13px; color: #333;">女</span>
+                        </div>
+                        <div>
+                          <div style="font-size: 12px; color: #666; margin-bottom: 4px;">特征：</div>
+                          <div 
+                            class="character-description" 
+                            data-character="2"
+                            style="font-size: 13px; color: #333; line-height: 1.6; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s;"
+                            onmouseenter="this.style.background='#e3f2fd';"
+                            onmouseleave="this.style.background='transparent';"
+                            onclick="editCharacterDescription(this)"
+                          >
+                            精致时尚，中长发扎低马尾，穿白色西装套裙搭配精致配饰，底妆清透服帖，语气自信从容，职场形象时尚精致
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="output-content">
+              <div class="output-header">
+                <span class="output-title">产品</span>
+              </div>
+              <div class="output-body">
+                <div style="display: flex; gap: 24px; align-items: flex-start;">
+                  <div style="position: relative; width: 200px; height: 200px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #f5f5f5; cursor: pointer;" onclick="document.getElementById('productImageInput').click();">
+                    <img id="productImage" src="images/商品图片.jpg" alt="商品图片" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">
+                      <span style="color: white; font-size: 13px;">点击更换图片</span>
+                    </div>
+                    <input type="file" id="productImageInput" accept="image/*" style="display: none;" onchange="uploadProductImage(this)">
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px;">DO双层养肤气垫粉饼</div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                      <div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">品牌名</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #0066FF;">DO</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">规格</div>
+                        <div style="font-size: 14px; color: #333;">15g</div>
+                      </div>
+                    </div>
+                    
+                    <div style="margin-top: 16px;">
+                      <div style="font-size: 12px; color: #666; margin-bottom: 8px;">核心卖点</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="padding: 6px 12px; background: #fff3e0; border-radius: 20px; font-size: 13px; color: #e65100;">防晒</span>
+                        <span style="padding: 6px 12px; background: #e3f2fd; border-radius: 20px; font-size: 13px; color: #1976d2;">遮瑕</span>
+                        <span style="padding: 6px 12px; background: #e8f5e9; border-radius: 20px; font-size: 13px; color: #2e7d32;">保湿</span>
+                        <span style="padding: 6px 12px; background: #f3e5f5; border-radius: 20px; font-size: 13px; color: #7b1fa2;">三效合一</span>
+                        <span style="padding: 6px 12px; background: #fff8e1; border-radius: 20px; font-size: 13px; color: #f57c00;">一步到位化妆不繁琐</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      `;
+      
+      var buttonWrapper = document.querySelector('.interactive-section-wrapper');
+      if (buttonWrapper) {
+        buttonWrapper.innerHTML = `
+          <div class="interactive-section">
+            <button class="interactive-btn" onclick="goToPrevStage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              返回上一步
+            </button>
+            <button class="interactive-btn primary" onclick="confirmStageThreeAndGoNext()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              确认进入下一阶段
+            </button>
+          </div>
+        `;
+      }
+    }
+    
+    function confirmStageThreeAndGoNext() {
+      var messageContainer = document.querySelector('.chat-messages');
+      var newMessage = document.createElement('div');
+      newMessage.className = 'message ai';
+      newMessage.innerHTML = `
+        <div class="avatar"><span>AI</span></div>
+        <div class="message-content">
+          <div class="message-text"></div>
+          <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+      `;
+      messageContainer.appendChild(newMessage);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+      
+      var textElement = newMessage.querySelector('.message-text');
+      var aiMessage = '接下来我们基于这个脚本去生成分镜画面了，你可以在预览分镜时进行裁剪哦';
+      
+      // 清空右侧内容，显示待加载状态
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
+          <div style="width: 48px; height: 48px; border: 3px solid #0066FF; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <div style="margin-top: 16px; font-size: 14px; color: #666;">正在进入分镜预览阶段...</div>
+        </div>
+      `;
+      
+      goToNextStage();
+      
+      // 500ms延迟后开始打字
+      setTimeout(function() {
+        typeWriterEffect(textElement, aiMessage, 25);
+        
+        // 等待打字完成后加载右侧内容
+        var checkTyping = setInterval(function() {
+          if (!textElement.classList.contains('typing')) {
+            clearInterval(checkTyping);
+            loadStageFourWithAnimation();
+          }
+        }, 100);
+      }, 500);
+    }
+    
+    // 阶段四加载动画：先显示系统处理，再显示分镜内容
+    function loadStageFourWithAnimation() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      
+      // 先只显示系统处理部分
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action loading-action">
+              <span class="action-icon loading-icon">🎬</span>
+              <span class="action-text">根据脚本内容，我将为你生成专业的分镜画面，你可以在预览时进行裁剪、调整音色等操作</span>
+            </div>
+          </div>
+          <div style="opacity: 0.3;">
+            <div class="section-title">分镜预览</div>
+            <div style="padding: 16px; background: #f5f5f5; border-radius: 8px; text-align: center; color: #999; font-size: 13px;">
+              正在生成分镜画面...
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 添加加载动画样式
+      var icon = stageDetailSection.querySelector('.loading-icon');
+      if (icon) {
+        icon.style.animation = 'pulse 1s infinite';
+      }
+      
+      // 模拟加载过程后显示完整内容
+      setTimeout(function() {
+        showStageFour();
+      }, 1500);
+    }
+    
+    function showStageFour() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action">
+              <span class="action-icon">🎬</span>
+              <span class="action-text">根据脚本内容，我将为你生成每个镜头的预览画面，鼠标悬停可自动播放，支持裁剪画面帧、修改音色等操作</span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title">分镜预览</div>
+            
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-body">
+                <div style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 12px;">
+                  
+                  <div class="storyboard-item" style="flex-shrink: 0; width: 280px; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
+                    <div style="aspect-ratio: 9/16; position: relative;">
+                      <video class="storyboard-video" playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                        <source src="videos/分镜画面1.mp4" type="video/mp4">
+                      </video>
+                      <div class="storyboard-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 1; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="storyboard-controls" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px 12px 12px; opacity: 0; transition: opacity 0.3s;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span class="time-display" style="color: white; font-size: 12px;">00:00/00:00</span>
+                        <div style="display: flex; gap: 8px;">
+                          <button class="control-btn" onclick="cropFrame(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="裁剪画面帧">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM6 20c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM19 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                            </svg>
+                          </button>
+                          <button class="control-btn" onclick="changeVoice(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改音色">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M12 14c1.66 0 2.99-1.34 2.99-3S13.66 8 12 8c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-1-9v4H8l-5 5v2h18v-2l-5-5h-3V5z"/>
+                            </svg>
+                          </button>
+                          <button class="control-btn" onclick="changeMusic(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div style="height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px;">
+                        <div class="storyboard-progress" style="height: 100%; width: 0%; background: #0066FF; border-radius: 1px; transition: width 0.1s linear;"></div>
+                      </div>
+                    </div>
+                    <div style="padding: 12px; background: #1a1a1a;">
+                      <div style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px;">镜头1：赶时间的窘境</div>
+                      <div style="font-size: 12px; color: #999;">约9s</div>
+                    </div>
+                  </div>
+                  
+                  <div class="storyboard-item" style="flex-shrink: 0; width: 280px; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
+                    <div style="aspect-ratio: 9/16; position: relative;">
+                      <video class="storyboard-video" playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                        <source src="videos/分镜画面2.mp4" type="video/mp4">
+                      </video>
+                      <div class="storyboard-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 1; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="storyboard-controls" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px 12px 12px; opacity: 0; transition: opacity 0.3s;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span class="time-display" style="color: white; font-size: 12px;">00:00/00:00</span>
+                        <div style="display: flex; gap: 8px;">
+                          <button class="control-btn" onclick="cropFrame(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="裁剪画面帧">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM6 20c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM19 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                            </svg>
+                          </button>
+                          <button class="control-btn" onclick="changeVoice(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改音色">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M12 14c1.66 0 2.99-1.34 2.99-3S13.66 8 12 8c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-1-9v4H8l-5 5v2h18v-2l-5-5h-3V5z"/>
+                            </svg>
+                          </button>
+                          <button class="control-btn" onclick="changeMusic(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div style="height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px;">
+                        <div class="storyboard-progress" style="height: 100%; width: 0%; background: #0066FF; border-radius: 1px; transition: width 0.1s linear;"></div>
+                      </div>
+                    </div>
+                    <div style="padding: 12px; background: #1a1a1a;">
+                      <div style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px;">镜头2：产品初体验</div>
+                      <div style="font-size: 12px; color: #999;">约9s</div>
+                    </div>
+                  </div>
+                  
+                  <div class="storyboard-item" style="flex-shrink: 0; width: 280px; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
+                    <div style="aspect-ratio: 9/16; position: relative;">
+                      <video class="storyboard-video" playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                        <source src="videos/分镜画面3.mp4" type="video/mp4">
+                      </video>
+                      <div class="storyboard-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 1; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="storyboard-controls" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px 12px 12px; opacity: 0; transition: opacity 0.3s;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span class="time-display" style="color: white; font-size: 12px;">00:00/00:00</span>
+                        <div style="display: flex; gap: 8px;">
+                          <button class="control-btn" onclick="cropFrame(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="裁剪画面帧">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM6 20c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM19 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                            </svg>
+                          </button>
+                          <button class="control-btn" onclick="changeVoice(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改音色">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M12 14c1.66 0 2.99-1.34 2.99-3S13.66 8 12 8c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-1-9v4H8l-5 5v2h18v-2l-5-5h-3V5z"/>
+                            </svg>
+                          </button>
+                          <button class="control-btn" onclick="changeMusic(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div style="height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px;">
+                        <div class="storyboard-progress" style="height: 100%; width: 0%; background: #0066FF; border-radius: 1px; transition: width 0.1s linear;"></div>
+                      </div>
+                    </div>
+                    <div style="padding: 12px; background: #1a1a1a;">
+                      <div style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px;">镜头3：产品展示</div>
+                      <div style="font-size: 12px; color: #999;">约15s</div>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      `;
+      
+      var buttonWrapper = document.querySelector('.interactive-section-wrapper');
+      if (buttonWrapper) {
+        buttonWrapper.innerHTML = `
+          <div class="interactive-section">
+            <button class="interactive-btn" onclick="goToPrevStage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              返回上一步
+            </button>
+            <button class="interactive-btn primary" onclick="confirmStageFourAndGoNext()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              确认进入下一阶段
+            </button>
+          </div>
+        `;
+      }
+      
+      setTimeout(function() {
+        var storyboardItems = document.querySelectorAll('.storyboard-item');
+        storyboardItems.forEach(function(item) {
+          var video = item.querySelector('.storyboard-video');
+          var overlay = item.querySelector('.storyboard-overlay');
+          var controls = item.querySelector('.storyboard-controls');
+          var progressBar = item.querySelector('.storyboard-progress');
+          var timeDisplay = item.querySelector('.time-display');
+          
+          item.addEventListener('mouseenter', function() {
+            if (video) {
+              video.play();
+              video.addEventListener('timeupdate', updateProgress);
+              video.addEventListener('ended', function() {
+                video.currentTime = 0;
+                overlay.style.opacity = '1';
+                if (progressBar) progressBar.style.width = '0%';
+              });
+            }
+            if (overlay) overlay.style.opacity = '0';
+            if (controls) controls.style.opacity = '1';
+          });
+          
+          item.addEventListener('mouseleave', function() {
+            if (video) {
+              video.pause();
+              video.removeEventListener('timeupdate', updateProgress);
+            }
+            if (overlay) overlay.style.opacity = '1';
+            if (controls) controls.style.opacity = '0';
+          });
+          
+          function updateProgress() {
+            if (video && progressBar && timeDisplay) {
+              var percentage = (video.currentTime / video.duration) * 100;
+              progressBar.style.width = percentage + '%';
+              var current = Math.floor(video.currentTime);
+              var total = Math.floor(video.duration);
+              timeDisplay.textContent = formatTime(current) + '/' + formatTime(total);
+            }
+          }
+          
+          function formatTime(seconds) {
+            var mins = Math.floor(seconds / 60);
+            var secs = Math.floor(seconds % 60);
+            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+          }
+        });
+      }, 100);
+    }
+    
+    function confirmStageFourAndGoNext() {
+      var messageContainer = document.querySelector('.chat-messages');
+      var newMessage = document.createElement('div');
+      newMessage.className = 'message ai';
+      newMessage.innerHTML = `
+        <div class="avatar"><span>AI</span></div>
+        <div class="message-content">
+          <div class="message-text"></div>
+          <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+      `;
+      messageContainer.appendChild(newMessage);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+      
+      var textElement = newMessage.querySelector('.message-text');
+      var aiMessage = '太好了，我们已经完成了大部分创作工作，最后让我们看下成片效果吧，你依然可以在成片中修改背景音乐、贴纸、字幕等哦';
+      
+      // 清空右侧内容，显示待加载状态
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
+          <div style="width: 48px; height: 48px; border: 3px solid #0066FF; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <div style="margin-top: 16px; font-size: 14px; color: #666;">正在进入成片阶段...</div>
+        </div>
+      `;
+      
+      goToNextStage();
+      
+      // 500ms延迟后开始打字
+      setTimeout(function() {
+        typeWriterEffect(textElement, aiMessage, 25);
+        
+        // 等待打字完成后加载右侧内容
+        var checkTyping = setInterval(function() {
+          if (!textElement.classList.contains('typing')) {
+            clearInterval(checkTyping);
+            loadStageFiveWithAnimation();
+          }
+        }, 100);
+      }, 500);
+    }
+    
+    // 阶段五加载动画：先显示系统处理，再显示成片内容
+    function loadStageFiveWithAnimation() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      
+      // 先只显示系统处理部分
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action loading-action">
+              <span class="action-icon loading-icon">✨</span>
+              <span class="action-text">根据分镜画面，我将为你合成最终成片，你可以在成片中修改背景音乐、添加贴纸和字幕等操作</span>
+            </div>
+          </div>
+          <div style="opacity: 0.3;">
+            <div class="section-title">成片预览</div>
+            <div style="padding: 16px; background: #f5f5f5; border-radius: 8px; text-align: center; color: #999; font-size: 13px;">
+              正在合成成片...
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 添加加载动画样式
+      var icon = stageDetailSection.querySelector('.loading-icon');
+      if (icon) {
+        icon.style.animation = 'pulse 1s infinite';
+      }
+      
+      // 模拟加载过程后显示完整内容
+      setTimeout(function() {
+        showStageFive();
+      }, 1500);
+    }
+    
+    var currentStickers = [];
+    var currentSubtitles = ['试试这款气垫，遮瑕又轻薄！', '持妆八小时不脱妆', '一步搞定防晒遮瑕'];
+    
+    function showStageFive() {
+      var stageDetailSection = document.querySelector('.stage-detail-section');
+      stageDetailSection.innerHTML = `
+        <div class="stage-card">
+          <div>
+            <div class="section-title">系统处理</div>
+            <div class="system-action">
+              <span class="action-icon">🎉</span>
+              <span class="action-text">根据前面所有阶段的内容，我将为你合成最终的视频成片，鼠标悬停视频自动播放，支持修改背景音乐、添加/删除贴纸、添加/删除字幕</span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title">成片预览</div>
+            
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-body">
+                <div style="display: flex; justify-content: center;">
+                  <div id="finalVideoContainer" style="width: 420px; background: #1a1a1a; border-radius: 12px; overflow: hidden; position: relative;">
+                    <div style="aspect-ratio: 9/16; position: relative;">
+                      <video id="finalVideo" playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                        <source src="videos/成片.mp4" type="video/mp4">
+                      </video>
+                      
+                      <div id="playOverlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.3s;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="white">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                      
+                      <div id="videoStickers" style="position: absolute; inset: 0; pointer-events: none;">
+                        ${currentStickers.map((sticker, index) => `
+                          <div class="sticker-item" data-index="${index}" style="position: absolute; top: ${sticker.top}%; left: ${sticker.left}%; font-size: ${sticker.size}px; cursor: pointer; pointer-events: auto;" onmouseenter="showStickerControls(this)" onmouseleave="hideStickerControls(this)">
+                            ${sticker.emoji}
+                            <button class="sticker-delete" onclick="removeSticker(${index})" style="position: absolute; top: -8px; right: -8px; width: 16px; height: 16px; background: red; border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: none;">×</button>
+                          </div>
+                        `).join('')}
+                      </div>
+                      
+                      <div id="videoSubtitles" style="position: absolute; bottom: 80px; left: 16px; right: 16px; pointer-events: none;">
+                        <div class="subtitle-item" style="background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 4px; color: white; font-size: 14px; text-align: center; margin-bottom: 8px; cursor: pointer; pointer-events: auto;" onmouseenter="showSubtitleControls(this)" onmouseleave="hideSubtitleControls(this)">
+                          ${currentSubtitles[0]}
+                          <button class="subtitle-delete" onclick="removeSubtitle(0)" style="position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: red; border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: none;">×</button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style="padding: 16px; background: #1a1a1a;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                        <div>
+                          <div style="font-size: 16px; font-weight: 600; color: #fff;">DO双层养肤气垫粉饼 - 带货视频</div>
+                          <div style="font-size: 12px; color: #999;">时长：约33秒</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                          <button onclick="changeBackgroundMusic()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                            </svg>
+                          </button>
+                          <button onclick="addSticker()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="添加贴纸">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                            </svg>
+                          </button>
+                          <button onclick="addSubtitle()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="添加字幕">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H6v-2h10v2zm0-4H6v-2h10v2zm-3-5l3.5-3.5L13 9H6V7h7z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div style="height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px;">
+                        <div style="height: 100%; width: 75%; background: #0066FF; border-radius: 2px;"></div>
+                      </div>
+                      
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                        <span style="color: #999; font-size: 12px;">00:25/00:33</span>
+                        <span style="color: #999; font-size: 12px;">1x</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 16px;">
+              <div class="section-title" style="display: flex; align-items: center;">当前贴纸列表<span style="font-size: 11px; color: #999; margin-left: 4px; font-weight: normal;">点击删除贴纸</span></div>
+              <div id="stickerList" style="display: flex; flex-wrap: gap: 12px; gap: 12px; padding: 12px; background: #f5f7fa; border-radius: 8px;">
+                ${currentStickers.map((sticker, index) => `
+                  <div class="sticker-tag" data-index="${index}" style="padding: 8px 12px; background: #fff; border: 1px solid #e8e8e8; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="removeSticker(${index})">
+                    <span style="font-size: 20px;">${sticker.emoji}</span>
+                    <span style="font-size: 12px; color: #666;">${sticker.name}</span>
+                    <span style="color: #999;">×</span>
+                  </div>
+                `).join('') || '<span style="color: #999; font-size: 12px;">暂无贴纸，点击上方按钮添加</span>'}
+              </div>
+            </div>
+            
+            <div style="margin-top: 16px;">
+              <div class="section-title" style="display: flex; align-items: center;">当前字幕列表<span style="font-size: 11px; color: #999; margin-left: 4px; font-weight: normal;">点击删除字幕</span></div>
+              <div id="subtitleList" style="padding: 12px; background: #f5f7fa; border-radius: 8px;">
+                ${currentSubtitles.map((subtitle, index) => `
+                  <div class="subtitle-tag" data-index="${index}" style="padding: 8px 12px; background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 8px;" onclick="removeSubtitle(${index})">
+                    <span style="font-size: 12px; color: #666;">${subtitle}</span>
+                    <span style="color: #999;">×</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      `;
+      
+      setTimeout(function() {
+        var video = document.getElementById('finalVideo');
+        var playOverlay = document.getElementById('playOverlay');
+        var videoContainer = document.getElementById('finalVideoContainer');
+        
+        if (video && playOverlay && videoContainer) {
+          videoContainer.addEventListener('mouseenter', function() {
+            playOverlay.style.opacity = '0';
+            video.play();
+          });
+          videoContainer.addEventListener('mouseleave', function() {
+            video.pause();
+            playOverlay.style.opacity = '1';
+          });
+        }
+      }, 100);
+      
+      var buttonWrapper = document.querySelector('.interactive-section-wrapper');
+      if (buttonWrapper) {
+        buttonWrapper.innerHTML = `
+          <div class="interactive-section">
+            <button class="interactive-btn" onclick="goToPrevStage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              返回上一步
+            </button>
+            <button class="interactive-btn primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              开始用视频投广
+            </button>
+          </div>
+        `;
+      }
+    }
+    
+    function changeBackgroundMusic() {
+      var musics = ['轻快活泼', '温馨抒情', '动感节奏', '舒缓安静'];
+      var selectedMusic = prompt('请选择背景音乐：\n1. 轻快活泼\n2. 温馨抒情\n3. 动感节奏\n4. 舒缓安静', '1');
+      if (selectedMusic && selectedMusic >= 1 && selectedMusic <= 4) {
+        alert('已切换背景音乐：' + musics[selectedMusic - 1]);
+      }
+    }
+    
+    function addSticker() {
+      var stickerOptions = [
+        { emoji: '❤️', name: '爱心' },
+        { emoji: '⭐', name: '星星' },
+        { emoji: '🌸', name: '花朵' },
+        { emoji: '😊', name: '笑脸' },
+        { emoji: '🔥', name: '火焰' },
+        { emoji: '👍', name: '点赞' },
+        { emoji: '💎', name: '钻石' },
+        { emoji: '✨', name: '闪光' }
+      ];
+      
+      var optionsText = stickerOptions.map((s, i) => `${i + 1}. ${s.emoji} ${s.name}`).join('\n');
+      var selectedIndex = prompt('请选择贴纸：\n' + optionsText, '1');
+      
+      if (selectedIndex && selectedIndex >= 1 && selectedIndex <= stickerOptions.length) {
+        var sticker = stickerOptions[selectedIndex - 1];
+        currentStickers.push({
+          emoji: sticker.emoji,
+          name: sticker.name,
+          top: 20 + Math.random() * 40,
+          left: 20 + Math.random() * 60,
+          size: 24 + Math.random() * 16
+        });
+        showStageFive();
+      }
+    }
+    
+    function removeSticker(index) {
+      currentStickers.splice(index, 1);
+      showStageFive();
+    }
+    
+    function showStickerControls(element) {
+      var deleteBtn = element.querySelector('.sticker-delete');
+      if (deleteBtn) deleteBtn.style.display = 'block';
+    }
+    
+    function hideStickerControls(element) {
+      var deleteBtn = element.querySelector('.sticker-delete');
+      if (deleteBtn) deleteBtn.style.display = 'none';
+    }
+    
+    function addSubtitle() {
+      var subtitle = prompt('请输入字幕内容：', '');
+      if (subtitle && subtitle.trim() !== '') {
+        currentSubtitles.push(subtitle.trim());
+        showStageFive();
+      }
+    }
+    
+    function removeSubtitle(index) {
+      if (currentSubtitles.length > 1) {
+        currentSubtitles.splice(index, 1);
+        showStageFive();
+      } else {
+        alert('至少需要保留一条字幕！');
+      }
+    }
+    
+    function showSubtitleControls(element) {
+      var deleteBtn = element.querySelector('.subtitle-delete');
+      if (deleteBtn) deleteBtn.style.display = 'block';
+    }
+    
+    function hideSubtitleControls(element) {
+      var deleteBtn = element.querySelector('.subtitle-delete');
+      if (deleteBtn) deleteBtn.style.display = 'none';
+    }
+    
+    function cropFrame(button) {
+      var storyboardItem = button.closest('.storyboard-item');
+      var video = storyboardItem.querySelector('video');
+      var videoSrc = video.querySelector('source').src;
+      
+      var cropModal = document.createElement('div');
+      cropModal.id = 'cropModal';
+      cropModal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(15, 15, 20, 0.98);
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+      `;
+      
+      cropModal.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <h2 style="font-size: 16px; font-weight: 600; color: #fff;">裁剪素材</h2>
+            <div style="display: flex; gap: 8px;">
+              <button onclick="setCropRatio('1:1')" class="ratio-btn" data-ratio="1:1" style="padding: 6px 12px; background: rgba(255,255,255,0.08); border: none; border-radius: 6px; color: #999; font-size: 12px; cursor: pointer;">1:1</button>
+              <button onclick="setCropRatio('9:16')" class="ratio-btn active" data-ratio="9:16" style="padding: 6px 12px; background: #0066FF; border: none; border-radius: 6px; color: #fff; font-size: 12px; cursor: pointer;">9:16</button>
+              <button onclick="setCropRatio('16:9')" class="ratio-btn" data-ratio="16:9" style="padding: 6px 12px; background: rgba(255,255,255,0.08); border: none; border-radius: 6px; color: #999; font-size: 12px; cursor: pointer;">16:9</button>
+              <button onclick="setCropRatio('自由')" class="ratio-btn" data-ratio="自由" style="padding: 6px 12px; background: rgba(255,255,255,0.08); border: none; border-radius: 6px; color: #999; font-size: 12px; cursor: pointer;">自由</button>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <button onclick="closeCropModal()" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: #fff; font-size: 16px; cursor: pointer;">×</button>
+          </div>
+        </div>
+        
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+          <div id="cropPreviewContainer" style="width: 400px; height: 711px; background: #000; border-radius: 12px; overflow: hidden; position: relative;">
+            <video id="cropVideo" playsinline style="width: 100%; height: 100%; object-fit: cover;">
+              <source src="${videoSrc}" type="video/mp4">
+            </video>
+            
+            <div id="cropGuides" style="position: absolute; inset: 20px; pointer-events: none;">
+              <div style="width: 100%; height: 100%; border: 2px dashed rgba(255,255,255,0.5); border-radius: 8px;"></div>
+              <div style="position: absolute; top: 33.33%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.2);"></div>
+              <div style="position: absolute; top: 66.66%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.2);"></div>
+              <div style="position: absolute; left: 33.33%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.2);"></div>
+              <div style="position: absolute; left: 66.66%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.2);"></div>
+            </div>
+            
+            <div id="cropArea" style="position: absolute; top: 50px; left: 50px; right: 50px; bottom: 50px; border: 3px solid #0066FF; border-radius: 8px; background: rgba(0,102,255,0.1);">
+              <div id="resizeTL" class="resize-handle" style="position: absolute; top: -6px; left: -6px; width: 12px; height: 12px; background: #0066FF; border-radius: 50%; cursor: nwse-resize;"></div>
+              <div id="resizeTR" class="resize-handle" style="position: absolute; top: -6px; right: -6px; width: 12px; height: 12px; background: #0066FF; border-radius: 50%; cursor: nesw-resize;"></div>
+              <div id="resizeBL" class="resize-handle" style="position: absolute; bottom: -6px; left: -6px; width: 12px; height: 12px; background: #0066FF; border-radius: 50%; cursor: nesw-resize;"></div>
+              <div id="resizeBR" class="resize-handle" style="position: absolute; bottom: -6px; right: -6px; width: 12px; height: 12px; background: #0066FF; border-radius: 50%; cursor: nwse-resize;"></div>
+              <div id="resizeT" class="resize-handle" style="position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 20px; height: 12px; background: #0066FF; border-radius: 6px; cursor: ns-resize;"></div>
+              <div id="resizeB" class="resize-handle" style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 20px; height: 12px; background: #0066FF; border-radius: 6px; cursor: ns-resize;"></div>
+              <div id="resizeL" class="resize-handle" style="position: absolute; left: -6px; top: 50%; transform: translateY(-50%); width: 12px; height: 20px; background: #0066FF; border-radius: 6px; cursor: ew-resize;"></div>
+              <div id="resizeR" class="resize-handle" style="position: absolute; right: -6px; top: 50%; transform: translateY(-50%); width: 12px; height: 20px; background: #0066FF; border-radius: 6px; cursor: ew-resize;"></div>
+            </div>
+            
+            <div id="cropPlayBtn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; background: rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+            
+            <div id="cropOverlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 5;"></div>
+          </div>
+          
+          <div style="width: 400px; margin-top: 20px;">
+            <div id="timelineWrapper" style="background: #0a0a12; border-radius: 8px; padding: 12px;">
+              <div id="timelineFrameStrip" style="display: flex; gap: 2px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none;">
+                ${generateCropFrameThumbnails()}
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <button id="timelinePlayBtn" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </button>
+                <div style="flex: 1; position: relative; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                  <div id="timelineProgress" style="height: 100%; width: 0%; background: #0066FF; border-radius: 3px;"></div>
+                  <div id="playhead" style="position: absolute; top: 50%; left: 0; width: 10px; height: 10px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%);"></div>
+                  <input id="timelineSlider" type="range" min="0" max="100" value="0" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; opacity: 0; cursor: pointer;">
+                </div>
+                <span id="timeDisplay" style="color: #999; font-size: 12px; min-width: 60px; text-align: right;">00:00/00:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <button onclick="closeCropModal()" style="padding: 10px 24px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: #fff; font-size: 14px; cursor: pointer;">取消</button>
+          <button onclick="confirmCrop()" style="padding: 10px 24px; background: #0066FF; border: none; border-radius: 8px; color: #fff; font-size: 14px; cursor: pointer;">确认裁剪</button>
+        </div>
+      `;
+      
+      document.body.appendChild(cropModal);
+      
+      setTimeout(function() {
+        var cropVideo = document.getElementById('cropVideo');
+        var cropOverlay = document.getElementById('cropOverlay');
+        var cropPlayBtn = document.getElementById('cropPlayBtn');
+        var timelineSlider = document.getElementById('timelineSlider');
+        var timelineProgress = document.getElementById('timelineProgress');
+        var playhead = document.getElementById('playhead');
+        var timeDisplay = document.getElementById('timeDisplay');
+        var timelinePlayBtn = document.getElementById('timelinePlayBtn');
+        
+        cropVideo.addEventListener('loadedmetadata', function() {
+          timeDisplay.textContent = '00:00/' + formatTime(cropVideo.duration);
+        });
+        
+        cropPlayBtn.addEventListener('click', function() {
+          toggleCropVideo();
+        });
+        
+        timelinePlayBtn.addEventListener('click', function() {
+          toggleCropVideo();
+        });
+        
+        cropVideo.addEventListener('timeupdate', function() {
+          var percentage = (cropVideo.currentTime / cropVideo.duration) * 100;
+          timelineSlider.value = percentage;
+          timelineProgress.style.width = percentage + '%';
+          playhead.style.left = percentage + '%';
+          timeDisplay.textContent = formatTime(cropVideo.currentTime) + '/' + formatTime(cropVideo.duration);
+        });
+        
+        timelineSlider.addEventListener('input', function() {
+          var value = this.value;
+          timelineProgress.style.width = value + '%';
+          playhead.style.left = value + '%';
+          cropVideo.currentTime = (cropVideo.duration * value) / 100;
+        });
+        
+        initCropResize();
+      }, 100);
+    }
+    
+    function initCropResize() {
+      var cropArea = document.getElementById('cropArea');
+      var container = document.getElementById('cropPreviewContainer');
+      var isResizing = false;
+      var isDragging = false;
+      var startX, startY, startLeft, startTop, startWidth, startHeight;
+      var currentHandle = null;
+      
+      cropArea.addEventListener('mousedown', function(e) {
+        if (!e.target.classList.contains('resize-handle')) {
+          isDragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          var rect = cropArea.getBoundingClientRect();
+          var containerRect = container.getBoundingClientRect();
+          startLeft = rect.left - containerRect.left;
+          startTop = rect.top - containerRect.top;
+          document.addEventListener('mousemove', onDrag);
+          document.addEventListener('mouseup', onEnd);
+        }
+      });
+      
+      var handles = document.querySelectorAll('.resize-handle');
+      handles.forEach(function(handle) {
+        handle.addEventListener('mousedown', function(e) {
+          e.stopPropagation();
+          isResizing = true;
+          currentHandle = handle.id;
+          startX = e.clientX;
+          startY = e.clientY;
+          var rect = cropArea.getBoundingClientRect();
+          startLeft = rect.left - container.getBoundingClientRect().left;
+          startTop = rect.top - container.getBoundingClientRect().top;
+          startWidth = rect.width;
+          startHeight = rect.height;
+          document.addEventListener('mousemove', onResize);
+          document.addEventListener('mouseup', onEnd);
+        });
+      });
+      
+      function onDrag(e) {
+        if (!isDragging) return;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        var newLeft = startLeft + dx;
+        var newTop = startTop + dy;
+        var containerRect = container.getBoundingClientRect();
+        
+        newLeft = Math.max(0, Math.min(newLeft, containerRect.width - cropArea.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, containerRect.height - cropArea.offsetHeight));
+        
+        cropArea.style.left = newLeft + 'px';
+        cropArea.style.top = newTop + 'px';
+      }
+      
+      function onResize(e) {
+        if (!isResizing || !currentHandle) return;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        var newLeft = startLeft;
+        var newTop = startTop;
+        var newWidth = startWidth;
+        var newHeight = startHeight;
+        
+        if (currentHandle.includes('L')) {
+          newWidth = Math.max(50, startWidth - dx);
+          newLeft = startLeft + dx;
+        }
+        if (currentHandle.includes('R')) {
+          newWidth = Math.max(50, startWidth + dx);
+        }
+        if (currentHandle.includes('T')) {
+          newHeight = Math.max(50, startHeight - dy);
+          newTop = startTop + dy;
+        }
+        if (currentHandle.includes('B')) {
+          newHeight = Math.max(50, startHeight + dy);
+        }
+        
+        cropArea.style.left = newLeft + 'px';
+        cropArea.style.top = newTop + 'px';
+        cropArea.style.width = newWidth + 'px';
+        cropArea.style.height = newHeight + 'px';
+      }
+      
+      function onEnd() {
+        isDragging = false;
+        isResizing = false;
+        currentHandle = null;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mousemove', onResize);
+        document.removeEventListener('mouseup', onEnd);
+      }
+    }
+    
+    function setCropRatio(ratio) {
+      document.querySelectorAll('.ratio-btn').forEach(function(btn) {
+        btn.style.background = btn.dataset.ratio === ratio ? '#0066FF' : 'rgba(255,255,255,0.08)';
+        btn.style.color = btn.dataset.ratio === ratio ? '#fff' : '#999';
+      });
+      
+      var cropArea = document.getElementById('cropArea');
+      var container = document.getElementById('cropPreviewContainer');
+      
+      if (ratio === '自由') {
+        return;
+      }
+      
+      var [w, h] = ratio.split(':').map(Number);
+      var containerWidth = container.offsetWidth;
+      var containerHeight = container.offsetHeight;
+      var scale = Math.min(containerWidth / w, containerHeight / h) * 0.8;
+      
+      var newWidth = w * scale;
+      var newHeight = h * scale;
+      
+      cropArea.style.width = newWidth + 'px';
+      cropArea.style.height = newHeight + 'px';
+      cropArea.style.left = (containerWidth - newWidth) / 2 + 'px';
+      cropArea.style.top = (containerHeight - newHeight) / 2 + 'px';
+    }
+    
+    function generateCropFrameThumbnails() {
+      var frames = [];
+      for (var i = 0; i < 24; i++) {
+        frames.push(`
+          <div style="flex-shrink: 0; width: 50px; height: 90px; background: #1a1a1a; border-radius: 4px; overflow: hidden;">
+            <img src="https://picsum.photos/50/90?random=${i}" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        `);
+      }
+      return frames.join('');
+    }
+    
+    function toggleCropVideo() {
+      var cropVideo = document.getElementById('cropVideo');
+      var cropOverlay = document.getElementById('cropOverlay');
+      var cropPlayBtn = document.getElementById('cropPlayBtn');
+      var timelinePlayBtn = document.getElementById('timelinePlayBtn');
+      
+      if (cropVideo.paused) {
+        cropVideo.play();
+        cropOverlay.style.background = 'rgba(0,0,0,0)';
+        cropPlayBtn.style.display = 'none';
+        timelinePlayBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+      } else {
+        cropVideo.pause();
+        cropOverlay.style.background = 'rgba(0,0,0,0.4)';
+        cropPlayBtn.style.display = 'flex';
+        timelinePlayBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+      }
+    }
+    
+    function formatTime(seconds) {
+      var mins = Math.floor(seconds / 60);
+      var secs = Math.floor(seconds % 60);
+      return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    }
+    
+    function generateFrameThumbnails() {
+      var frames = [];
+      for (var i = 0; i < 30; i++) {
+        frames.push(`
+          <div style="flex-shrink: 0; width: 40px; height: 71px; margin-right: 2px; background: linear-gradient(135deg, #2a2a4a ${i * 3}%, #1a1a3a ${i * 3 + 1}%); border-radius: 2px;">
+            <img src="https://picsum.photos/40/71?random=${i}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+          </div>
+        `);
+      }
+      return frames.join('');
+    }
+    
+    function toggleCropVideo() {
+      var cropVideo = document.getElementById('cropVideo');
+      var cropOverlay = document.getElementById('cropOverlay');
+      var playBtn = document.getElementById('cropPlayBtn');
+      
+      if (cropVideo.paused) {
+        cropVideo.play();
+        cropOverlay.style.opacity = '0';
+        playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+      } else {
+        cropVideo.pause();
+        cropOverlay.style.opacity = '1';
+        playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+      }
+    }
+    
+    function closeCropModal() {
+      var modal = document.getElementById('cropModal');
+      if (modal) {
+        var video = modal.querySelector('video');
+        if (video) video.pause();
+        modal.remove();
+      }
+    }
+    
+    function confirmCrop() {
+      closeCropModal();
+      alert('裁剪完成！');
+    }
+    
+    function changeVoice(button) {
+      var voices = ['甜美女声', '知性女声', '阳光男声', '沉稳男声'];
+      var selectedVoice = prompt('请选择音色：\n1. 甜美女声\n2. 知性女声\n3. 阳光男声\n4. 沉稳男声', '1');
+      if (selectedVoice && selectedVoice >= 1 && selectedVoice <= 4) {
+        alert('已切换到：' + voices[selectedVoice - 1]);
+      }
+    }
+    
+    function changeMusic(button) {
+      var musics = ['轻快活泼', '温馨抒情', '动感节奏', '舒缓安静'];
+      var selectedMusic = prompt('请选择背景音乐：\n1. 轻快活泼\n2. 温馨抒情\n3. 动感节奏\n4. 舒缓安静', '1');
+      if (selectedMusic && selectedMusic >= 1 && selectedMusic <= 4) {
+        alert('已切换背景音乐：' + musics[selectedMusic - 1]);
+      }
+    }
+    
+    function editLine(element) {
+      var spanElement = element.querySelector('span:last-child');
+      if (!spanElement) return;
+      
+      var currentText = spanElement.textContent;
+      var newText = prompt('请输入新的台词：', currentText);
+      
+      if (newText !== null && newText.trim() !== '') {
+        spanElement.textContent = newText.trim();
+      }
+    }
+    
+    function editCharacterDescription(element) {
+      var characterId = element.getAttribute('data-character');
+      var currentText = element.textContent.trim();
+      var newText = prompt('请输入人物' + characterId + '的特征描述：', currentText);
+      
+      if (newText !== null && newText.trim() !== '') {
+        element.textContent = newText.trim();
+      }
+    }
+    
+    function uploadProductImage(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+          var productImage = document.getElementById('productImage');
+          if (productImage) {
+            productImage.src = e.target.result;
+          }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+  </script>
+</body>
+</html>
