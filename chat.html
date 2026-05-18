@@ -657,6 +657,146 @@
       .main-content { flex-direction: column; }
       .chat-panel { width: 100%; border-right: none; border-bottom: 1px solid #e8e8e8; }
     }
+
+    .marketing-card {
+      position: relative;
+    }
+    .marketing-card .actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .marketing-card:hover .actions {
+      opacity: 1;
+    }
+    .marketing-time {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e8e8e8;
+      font-size: 12px;
+      color: #999;
+      cursor: pointer;
+    }
+    .marketing-time:hover {
+      color: #0066FF;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      width: 400px;
+      max-width: 90%;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .modal-content {
+      margin-bottom: 20px;
+    }
+    .system-nodes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .system-node-tag {
+      padding: 6px 12px;
+      background: #f5f7fa;
+      border: 1px solid #e8e8e8;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .system-node-tag:hover {
+      border-color: #0066FF;
+      color: #0066FF;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    .date-range-inputs {
+      display: flex;
+      gap: 12px;
+    }
+    .date-input {
+      flex: 1;
+    }
+    .date-input label {
+      display: block;
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+    .date-input input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+    }
+    .modal-btn-cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+    .modal-btn-confirm {
+      background: linear-gradient(135deg, #0066FF 0%, #0047CC 100%);
+      color: white;
+    }
+
+    .editable-text {
+      cursor: text;
+      border-radius: 4px;
+      transition: background 0.2s;
+      min-height: 1.4em;
+    }
+    .editable-text:hover {
+      background: #e3f2fd;
+    }
+    .editable-text:focus {
+      outline: 2px solid #0066FF;
+      background: #fff;
+    }
+    .editable-text:empty::before {
+      content: '双击编辑';
+      color: #999;
+    }
   </style>
 </head>
 <body>
@@ -697,8 +837,7 @@
         <div class="chat-header">
           <span class="chat-title">创作任务详情</span>
           <div class="chat-actions">
-            <button class="action-btn">分享</button>
-            <button class="action-btn">复制</button>
+            <button class="action-btn" onclick="createAsSkill()">创建为Skill</button>
           </div>
         </div>
         
@@ -1006,24 +1145,37 @@
       var container = document.getElementById('卖点-container');
       var title = prompt('请输入卖点标题（如：🔥 持久控油）:');
       if (!title) return;
-      
+
       var desc = prompt('请输入卖点描述:');
       if (!desc) return;
-      
+
+      var containsWhiteningWrinkle = title.includes('美白') || title.includes('去皱') || desc.includes('美白') || desc.includes('去皱');
+
+      var warningHtml = '';
+      if (containsWhiteningWrinkle) {
+        warningHtml = `
+          <div style="margin-top: 8px; padding: 8px; background: #FFF1F0; border: 1px solid #FF4D4F; border-radius: 4px; display: flex; align-items: flex-start; gap: 6px;">
+            <span style="color: #FF4D4F; font-size: 12px;">⚠️</span>
+            <div style="color: #FF4D4F; font-size: 11px; line-height: 1.4;">该产品详情页和发布时未出现美白去皱卖点，该卖点宣传需要化妆品备案！</div>
+          </div>
+        `;
+      }
+
       var newCard = document.createElement('div');
       newCard.style.cssText = 'padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;';
       newCard.onmouseenter = function() { showActions(this); };
       newCard.onmouseleave = function() { hideActions(this); };
-      
+
       newCard.innerHTML = `
         <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">${title}</div>
         <div style="font-size: 12px; color: #666;">${desc}</div>
+        ${warningHtml}
         <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
           <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
           <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
         </div>
       `;
-      
+
       container.appendChild(newCard);
     }
     
@@ -1045,7 +1197,196 @@
       
       container.appendChild(newTag);
     }
-    
+
+    function createAsSkill() {
+      var skillName = prompt('请输入Skill名称:');
+      if (!skillName) return;
+
+      var skillDesc = prompt('请输入Skill描述:');
+      if (!skillDesc) return;
+
+      alert('Skill "' + skillName + '" 创建成功！描述: ' + skillDesc);
+    }
+
+    function editDiscount() {
+      var discountValue = document.getElementById('discountValue').textContent;
+      var discountTime = document.getElementById('discountTime').textContent.replace('生效时间: ', '');
+      var timeParts = discountTime.split(' 至 ');
+      
+      var newValue = prompt('请输入折扣优惠信息:', discountValue);
+      if (!newValue) return;
+      
+      var startDate = prompt('请输入开始日期:', timeParts[0]);
+      if (!startDate) return;
+      
+      var endDate = prompt('请输入结束日期:', timeParts[1]);
+      if (!endDate) return;
+
+      document.getElementById('discountValue').textContent = newValue;
+      document.getElementById('discountTime').textContent = '生效时间: ' + startDate + ' 至 ' + endDate;
+    }
+
+    function editHotspot() {
+      var hotspotValue = document.getElementById('hotspotValue').textContent;
+      var newValue = prompt('请输入热点结合内容:', hotspotValue);
+      if (newValue) {
+        document.getElementById('hotspotValue').textContent = newValue;
+      }
+    }
+
+    function openDateEditor(type) {
+      var timeEl, startDate = '', endDate = '';
+      
+      if (type === 'discount') {
+        timeEl = document.getElementById('discountTime');
+      } else if (type === 'node') {
+        timeEl = document.getElementById('marketingNodeTime');
+      }
+      
+      if (timeEl && timeEl.textContent) {
+        var timeText = timeEl.textContent.replace('生效时间: ', '');
+        var timeParts = timeText.split(' 至 ');
+        if (timeParts.length === 2) {
+          startDate = timeParts[0];
+          endDate = timeParts[1];
+        }
+      }
+      
+      var overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <div class="modal-title">编辑生效时间</div>
+          <div class="modal-content">
+            <div class="date-range-inputs">
+              <div class="date-input">
+                <label>开始日期</label>
+                <input type="date" id="dateStart" value="${startDate}">
+              </div>
+              <div class="date-input">
+                <label>结束日期</label>
+                <input type="date" id="dateEnd" value="${endDate}">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+            <button class="modal-btn modal-btn-confirm" onclick="confirmDateEdit('${type}')">确认</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    function confirmDateEdit(type) {
+      var startDate = document.getElementById('dateStart').value;
+      var endDate = document.getElementById('dateEnd').value;
+      
+      if (!startDate || !endDate) {
+        alert('请选择开始日期和结束日期');
+        return;
+      }
+      
+      if (type === 'discount') {
+        document.getElementById('discountTime').textContent = '生效时间: ' + startDate + ' 至 ' + endDate;
+      } else if (type === 'node') {
+        document.getElementById('marketingNodeTime').textContent = '生效时间: ' + startDate + ' 至 ' + endDate;
+      }
+      
+      closeModal();
+    }
+
+    function editMarketingNode() {
+      var currentValue = document.getElementById('marketingNodeValue').textContent;
+      var currentTime = document.getElementById('marketingNodeTime').textContent.replace('生效时间: ', '');
+      var timeParts = currentTime.split(' 至 ');
+      var startDate = timeParts.length === 2 ? timeParts[0] : '';
+      var endDate = timeParts.length === 2 ? timeParts[1] : '';
+      
+      var overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <div class="modal-title">编辑营销节点</div>
+          <div class="modal-content">
+            <div style="margin-bottom: 12px;">
+              <span style="font-size: 13px; color: #666; margin-bottom: 8px; display: block;">选择系统节点:</span>
+              <div class="system-nodes">
+                <span class="system-node-tag" onclick="selectSystemNode('端午节', this)">端午节</span>
+                <span class="system-node-tag" onclick="selectSystemNode('618', this)">618</span>
+                <span class="system-node-tag" onclick="selectSystemNode('父亲节', this)">父亲节</span>
+              </div>
+            </div>
+            <input type="text" class="modal-input" id="customNodeInput" placeholder="或手动输入营销节点名称" value="${currentValue}">
+            <div class="date-range-inputs">
+              <div class="date-input">
+                <label>开始日期</label>
+                <input type="date" id="nodeStartDate" value="${startDate}">
+              </div>
+              <div class="date-input">
+                <label>结束日期</label>
+                <input type="date" id="nodeEndDate" value="${endDate}">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+            <button class="modal-btn modal-btn-confirm" onclick="confirmMarketingNodeEdit()">确认</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    function selectSystemNode(nodeName, element) {
+      document.getElementById('customNodeInput').value = nodeName;
+      document.querySelectorAll('.system-node-tag').forEach(tag => tag.style.borderColor = '#e8e8e8');
+      element.style.borderColor = '#0066FF';
+      element.style.color = '#0066FF';
+    }
+
+    function closeModal() {
+      var overlay = document.querySelector('.modal-overlay');
+      if (overlay) overlay.remove();
+    }
+
+    function confirmMarketingNodeEdit() {
+      var nodeValue = document.getElementById('customNodeInput').value;
+      var startDate = document.getElementById('nodeStartDate').value;
+      var endDate = document.getElementById('nodeEndDate').value;
+
+      if (!nodeValue) {
+        alert('请输入营销节点名称');
+        return;
+      }
+
+      document.getElementById('marketingNodeValue').textContent = nodeValue;
+      if (startDate && endDate) {
+        document.getElementById('marketingNodeTime').textContent = '生效时间: ' + startDate + ' 至 ' + endDate;
+      }
+
+      closeModal();
+    }
+
+    function deleteMarketingInfo(type) {
+      var confirmText = '';
+      if (type === 'discount') confirmText = '确定删除折扣优惠信息吗？';
+      else if (type === 'hotspot') confirmText = '确定删除热点结合信息吗？';
+      else if (type === 'node') confirmText = '确定删除营销节点吗？';
+
+      if (confirm(confirmText)) {
+        if (type === 'discount') {
+          document.getElementById('discountValue').textContent = '-';
+          document.getElementById('discountTime').textContent = '';
+        } else if (type === 'hotspot') {
+          document.getElementById('hotspotValue').textContent = '-';
+        } else if (type === 'node') {
+          document.getElementById('marketingNodeValue').textContent = '-';
+          document.getElementById('marketingNodeTime').textContent = '';
+        }
+      }
+    }
+
     function goToNextStage() {
       var currentStage = document.querySelector('.progress-step.active');
       var stages = document.querySelectorAll('.progress-step');
@@ -1125,7 +1466,7 @@
             
             <div class="output-content" style="margin-bottom: 16px;">
               <div class="output-header">
-                <span class="output-title">DO双层养肤气垫粉饼基本信息</span>
+                <span class="output-title">商品基本信息</span>
               </div>
               <div class="output-body">
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
@@ -1162,6 +1503,11 @@
                     <div style="text-align: center;">
                       <div style="font-size: 12px; color: #999; margin-bottom: 4px;">商品ID</div>
                       <div style="font-size: 13px; color: #333; font-weight: 500;">123666888</div>
+                    </div>
+                    <div style="width: 1px; height: 30px; background: #e8e8e8;"></div>
+                    <div style="text-align: center;">
+                      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">商品名称</div>
+                      <div style="font-size: 13px; color: #333; font-weight: 500;">DO双层养肤气垫粉饼</div>
                     </div>
                     <div style="width: 1px; height: 30px; background: #e8e8e8;"></div>
                     <div style="text-align: center;">
@@ -1257,6 +1603,48 @@
                     </svg>
                     新增卖点
                   </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-header">
+                <span class="output-title">商品营销信息</span>
+              </div>
+              <div class="output-body">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                  <div class="marketing-card" style="padding: 16px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 13px; font-weight: 500; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                      <span>💰</span> 折扣优惠信息
+                    </div>
+                    <div style="font-size: 13px; color: #666;" id="discountValue">买一送一</div>
+                    <div class="marketing-time" id="discountTime" onclick="openDateEditor('discount')">生效时间: 2024-05-01 至 2024-06-30</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editDiscount()" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteMarketingInfo('discount')" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div class="marketing-card" style="padding: 16px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 13px; font-weight: 500; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                      <span>🔥</span> 热点结合
+                    </div>
+                    <div style="font-size: 13px; color: #666;" id="hotspotValue">你是否在雪山上救了一只狐狸</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editHotspot()" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteMarketingInfo('hotspot')" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                  <div class="marketing-card" style="padding: 16px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
+                    <div style="font-size: 13px; font-weight: 500; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                      <span>📅</span> 营销节点
+                    </div>
+                    <div style="font-size: 13px; color: #666;" id="marketingNodeValue">520浪漫情人节</div>
+                    <div class="marketing-time" id="marketingNodeTime" onclick="openDateEditor('node')">生效时间: 2024-05-20 至 2024-05-22</div>
+                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
+                      <button onclick="editMarketingNode()" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
+                      <button onclick="deleteMarketingInfo('node')" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1787,23 +2175,23 @@
                           <div style="font-size: 12px; color: #666;">新人赶时间底妆翻车,同事犀利吐槽</div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>又要涂防晒又要遮痘印，来不及了！</span>
+                            <span class="editable-text" contenteditable="false">又要涂防晒又要遮痘印，来不及了！</span>
                           </div>
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>怎么还是卡粉啊...</span>
+                            <span class="editable-text" contenteditable="false">怎么还是卡粉啊...</span>
                           </div>
-                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
-                            <span>你这底妆斑驳成这样，客户见了不吓跑？</span>
+                            <span class="editable-text" contenteditable="false">你这底妆斑驳成这样，客户见了不吓跑？</span>
                           </div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
-                          <div style="margin-bottom: 8px;"><strong>中景：</strong>清晨办公区茶水间，冷白顶光下氛围匆忙。<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫，使用气垫前肌肤粗糙暗沉）站在镜子前，双手捧脸端详，手指戳着脸上斑驳的脱妆晒黑的痘印仍明显泛红，眉头紧锁，嘴角下撇，右手腕不断撸过手表看时间。</div>
-                          <div style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫，使用气垫前肌肤粗糙暗沉）低头用手指顺脸颊推粉底，指尖仍卡在粉底液的痕迹仍在，拇指轻刮眼周一道粉。</div>
-                          <div><strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致职场、低马尾、白西装搭配精致配饰）站在<strong>人物1</strong>身后，双手抱臂，目光扫过她斑驳的底妆，嘴角微微带着调侃，身体重心偏向一侧。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>中景：</strong>清晨办公区茶水间，冷白顶光下氛围匆忙。<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫，使用气垫前肌肤粗糙暗沉）站在镜子前，双手捧脸端详，手指戳着脸上斑驳的脱妆晒黑的痘印仍明显泛红，眉头紧锁，嘴角下撇，右手腕不断撸过手表看时间。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫，使用气垫前肌肤粗糙暗沉）低头用手指顺脸颊推粉底，指尖仍卡在粉底液的痕迹仍在，拇指轻刮眼周一道粉。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)"><strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致职场、低马尾、白西装搭配精致配饰）站在<strong>人物1</strong>身后，双手抱臂，目光扫过她斑驳的底妆，嘴角微微带着调侃，身体重心偏向一侧。</div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约9s</td>
                       </tr>
@@ -1815,23 +2203,23 @@
                           <div style="font-size: 12px; color: #666;">气垫救场显效,新人惊喜验证</div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
-                            <span>试试这个，一步搞定防晒遮瑕。</span>
+                            <span class="editable-text" contenteditable="false">试试这个，一步搞定防晒遮瑕。</span>
                           </div>
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>这也太服帖了吧？痘印都看不见了！</span>
+                            <span class="editable-text" contenteditable="false">这也太服帖了吧？痘印都看不见了！</span>
                           </div>
-                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
-                            <span>持妆八小时都不脱，下午见客户也不怕。</span>
+                            <span class="editable-text" contenteditable="false">持妆八小时都不脱，下午见客户也不怕。</span>
                           </div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
-                          <div style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致时尚、低马尾、白西装搭配精致配饰）从精致的手缝包里掏出一个精致的黑色气垫盒，盒面带有清晰品牌logo，双手递到<strong>人物1</strong>面前，指尖轻轻叩击气垫盒表面，眉梢微扬、眼神笃定；固定机位近景，镜头推近气垫盒logo细节。</div>
-                          <div style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）对着镜子轻拍自己的脸颊，指尖划过清透的底妆（对比之前的粗糙肌肤），眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。</div>
-                          <div><strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致时尚、低马尾、白西装搭配精致配饰）靠在门框上，双臂交叉，看着<strong>人物1</strong>的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致时尚、低马尾、白西装搭配精致配饰）从精致的手缝包里掏出一个精致的黑色气垫盒，盒面带有清晰品牌logo，双手递到<strong>人物1</strong>面前，指尖轻轻叩击气垫盒表面，眉梢微扬、眼神笃定；固定机位近景，镜头推近气垫盒logo细节。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）对着镜子轻拍自己的脸颊，指尖划过清透的底妆（对比之前的粗糙肌肤），眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)"><strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>（精致时尚、低马尾、白西装搭配精致配饰）靠在门框上，双臂交叉，看着<strong>人物1</strong>的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。</div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约9s</td>
                       </tr>
@@ -1843,33 +2231,33 @@
                           <div style="font-size: 12px; color: #666;">核心卖点直观展示</div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>这款气垫BB，防晒遮瑕一步到位。</span>
+                            <span class="editable-text" contenteditable="false">这款气垫BB，防晒遮瑕一步到位。</span>
                           </div>
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>微气孔设计取粉均匀，上脸服帖不卡粉。</span>
+                            <span class="editable-text" contenteditable="false">微气孔设计取粉均匀，上脸服帖不卡粉。</span>
                           </div>
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>打造原生雾感肌，像天生好皮肤。</span>
+                            <span class="editable-text" contenteditable="false">打造原生雾感肌，像天生好皮肤。</span>
                           </div>
-                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>高倍防晒，通勤化妆不再繁琐。</span>
+                            <span class="editable-text" contenteditable="false">高倍防晒，通勤化妆不再繁琐。</span>
                           </div>
-                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="editLine(this)">
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" ondblclick="enableEdit(this)">
                             <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
-                            <span>现在下单，职场精致肌轻松拥有。</span>
+                            <span class="editable-text" contenteditable="false">现在下单，职场精致肌轻松拥有。</span>
                           </div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
-                          <div style="margin-bottom: 8px;"><strong>近景：</strong>干净白色背景、柔光均匀打亮。<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）面向镜头，右手托着黑色气垫盒，盒面品牌logo清晰可见，左手食指轻点气垫表面，眼神认真直视；固定机位近景，镜头聚焦气垫盒logo。</div>
-                          <div style="margin-bottom: 8px;"><strong>特写：</strong>柔光下，气垫微气孔扑蘸取粉底，粉量均匀附着在粉扑上，镜头缓慢推近粉扑细节；微距特写，背景虚化。</div>
-                          <div style="margin-bottom: 8px;"><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）用粉扑轻拍自己的右脸颊，底妆自然清透（对比之前的粗糙肌肤），她对着镜头转脸展示侧脸，嘴角上扬、机位近景，收音突出轻拍声。</div>
-                          <div style="margin-bottom: 8px;"><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）面向镜头，右手举起气垫盒展示精致包装，盒面品牌logo清晰，左手食指指向SPF40+PA+++标识，眼神笃定；固定机位近景，镜头先推近logo再移至SPF标识。</div>
-                          <div><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）双手捧着气垫盒，嘴角弧度自然，眼神直视镜头；固定机位近景，镜头稳定。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>近景：</strong>干净白色背景、柔光均匀打亮。<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）面向镜头，右手托着黑色气垫盒，盒面品牌logo清晰可见，左手食指轻点气垫表面，眼神认真直视；固定机位近景，镜头聚焦气垫盒logo。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>特写：</strong>柔光下，气垫微气孔扑蘸取粉底，粉量均匀附着在粉扑上，镜头缓慢推近粉扑细节；微距特写，背景虚化。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）用粉扑轻拍自己的右脸颊，底妆自然清透（对比之前的粗糙肌肤），她对着镜头转脸展示侧脸，嘴角上扬、机位近景，收音突出轻拍声。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="margin-bottom: 8px;"><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）面向镜头，右手举起气垫盒展示精致包装，盒面品牌logo清晰，左手食指指向SPF40+PA+++标识，眼神笃定；固定机位近景，镜头先推近logo再移至SPF标识。</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)"><strong>近景：</strong>白色背景柔光，<strong>人物1</strong>（圆脸、齐肩短发、浅蓝衬衫）双手捧着气垫盒，嘴角弧度自然，眼神直视镜头；固定机位近景，镜头稳定。</div>
                         </td>
                         <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约15s</td>
                       </tr>
@@ -1907,12 +2295,13 @@
                         <div>
                           <div style="font-size: 12px; color: #666; margin-bottom: 4px;">特征：</div>
                           <div 
-                            class="character-description" 
+                            class="editable-text character-description" 
                             data-character="1"
+                            contenteditable="false"
+                            ondblclick="enableEdit(this)"
                             style="font-size: 13px; color: #333; line-height: 1.6; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s;"
                             onmouseenter="this.style.background='#e3f2fd';"
                             onmouseleave="this.style.background='transparent';"
-                            onclick="editCharacterDescription(this)"
                           >
                             职场新人，圆脸，齐肩短发，穿浅蓝衬衫配西裤，使用气垫前肌肤略粗糙，面部有泛红痘印，赶时间时妆容斑驳卡粉，性格略带急躁但愿意尝试新东西
                           </div>
@@ -1943,12 +2332,13 @@
                         <div>
                           <div style="font-size: 12px; color: #666; margin-bottom: 4px;">特征：</div>
                           <div 
-                            class="character-description" 
+                            class="editable-text character-description" 
                             data-character="2"
+                            contenteditable="false"
+                            ondblclick="enableEdit(this)"
                             style="font-size: 13px; color: #333; line-height: 1.6; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s;"
                             onmouseenter="this.style.background='#e3f2fd';"
                             onmouseleave="this.style.background='transparent';"
-                            onclick="editCharacterDescription(this)"
                           >
                             精致时尚，中长发扎低马尾，穿白色西装套裙搭配精致配饰，底妆清透服帖，语气自信从容，职场形象时尚精致
                           </div>
@@ -1959,7 +2349,35 @@
                 </div>
               </div>
             </div>
-            
+
+            <div class="output-content" style="margin-bottom: 16px;">
+              <div class="output-header">
+                <span class="output-title">场景清单</span>
+              </div>
+              <div class="output-body">
+                <div style="padding: 16px; background: #f5f7fa; border-radius: 8px;">
+                  <div style="display: flex; gap: 16px; align-items: flex-start;">
+                    <div style="position: relative; width: 200px; height: 150px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #f5f5f5; cursor: pointer;" onclick="document.getElementById('sceneImageInput').click();">
+                      <img id="sceneImage" src="images/场景图.jpg" alt="场景图" style="width: 100%; height: 100%; object-fit: cover;">
+                      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">
+                        <span style="color: white; font-size: 13px;">点击更换图片</span>
+                      </div>
+                      <input type="file" id="sceneImageInput" accept="image/*" style="display: none;" onchange="uploadSceneImage(this)">
+                    </div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px;">公司茶水间</div>
+                      <div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">场景描述：</div>
+                        <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 13px; color: #333; line-height: 1.6; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';">
+                          光线明亮、空间宽敞、有镜子和台面
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="output-content">
               <div class="output-header">
                 <span class="output-title">产品</span>
@@ -2999,20 +3417,41 @@
     function editLine(element) {
       var spanElement = element.querySelector('span:last-child');
       if (!spanElement) return;
-      
+
       var currentText = spanElement.textContent;
       var newText = prompt('请输入新的台词：', currentText);
-      
+
       if (newText !== null && newText.trim() !== '') {
         spanElement.textContent = newText.trim();
       }
     }
-    
+
+    function enableEdit(element) {
+      element.contentEditable = 'true';
+      element.focus();
+      element.style.outline = '2px solid #0066FF';
+      element.style.background = '#fff';
+
+      element.addEventListener('blur', function saveEdit() {
+        element.contentEditable = 'false';
+        element.style.outline = 'none';
+        element.style.background = 'transparent';
+        element.removeEventListener('blur', saveEdit);
+      });
+
+      element.addEventListener('keydown', function handleEnter(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          element.blur();
+        }
+      });
+    }
+
     function editCharacterDescription(element) {
       var characterId = element.getAttribute('data-character');
       var currentText = element.textContent.trim();
       var newText = prompt('请输入人物' + characterId + '的特征描述：', currentText);
-      
+
       if (newText !== null && newText.trim() !== '') {
         element.textContent = newText.trim();
       }
@@ -3026,6 +3465,21 @@
           var productImage = document.getElementById('productImage');
           if (productImage) {
             productImage.src = e.target.result;
+          }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function uploadSceneImage(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+          var sceneImage = document.getElementById('sceneImage');
+          if (sceneImage) {
+            sceneImage.src = e.target.result;
           }
         };
         
