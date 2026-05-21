@@ -4142,75 +4142,31 @@
     }
     
     function showScriptModal(button) {
-      var storyboardItem = button.closest('.storyboard-item');
-      var title = storyboardItem.querySelector('div:last-child div:first-child').textContent;
-      var duration = storyboardItem.querySelector('div:last-child div:last-child').textContent;
-      
-      var scriptData = {
-        '镜头1：赶时间的窘境': {
-          lines: ['人物1：这妆也太斑驳了，新人聚餐怎么办啊！', '人物1：这也太尴尬了吧？痘印都看见了！', '人物1：这也太服帖了吧？', '人物1：持妆八小时都不脱，下午见客户也不怕。'],
-          scenes: ['近景：冷白顶光茶水间，人物1对着镜子轻拍自己的脸颊，指尖划过清透的底妆，眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。', '近景：冷白顶光茶水间，人物1靠在门框上，双臂交叉，看着人物2的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。']
-        },
-        '镜头2：产品初体验': {
-          lines: ['人物2：试试这个，一步搞定防晒遮瑕。', '人物1：这也太服帖了吧？痘印都看不见了！', '人物1：这也太服帖了吧？', '人物1：持妆八小时都不脱，下午见客户也不怕。'],
-          scenes: ['近景：冷白顶光茶水间，人物2从精致的手缝包里掏出一个精致的黑色气垫盒，盒面带有清晰品牌logo，双手递到人物1面前，指尖轻轻叩击气垫盒表面，眉梢微扬、眼神笃定；固定机位近景，镜头推近气垫盒logo细节。', '近景：冷白顶光茶水间，人物1对着镜子轻拍自己的脸颊，指尖划过清透的底妆，眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。', '近景：冷白顶光茶水间，人物2靠在门框上，双臂交叉，看着人物1的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。', '中景：冷白顶光茶水间，镜头推近两人互动。']
-        },
-        '镜头3：产品展示': {
-          lines: ['人物1：这款气垫BB，防晒遮瑕一步到位。', '人物1：轻薄服帖，持妆一整天！', '人物1：姐妹们冲啊！'],
-          scenes: ['近景：干净白色背景、柔光均匀打亮。人物1面向镜头，右手托着黑色气垫盒，盒面品牌logo清晰可见，左手食指轻点气垫表面，眼神认真直视；固定机位近景，镜头聚焦气垫盒logo。', '特写：柔光下，气垫微气孔扑蘸取粉底，粉量均匀附着在粉扑上，镜头缓慢推近粉扑细节；微距特写，背景虚化。']
-        }
-      };
-      
-      var data = scriptData[title] || { lines: [], scenes: [] };
-      
       var modal = document.createElement('div');
       modal.id = 'scriptModal';
-      modal.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        border-radius: 12px;
-        width: 600px;
-        max-height: 80vh;
-        overflow: hidden;
-        z-index: 1000;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      `;
+      modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 12px; width: 600px; max-height: 80vh; overflow: hidden; z-index: 1000; box-shadow: 0 20px 60px rgba(0,0,0,0.3);';
       
-      var linesHtml = data.lines.map((line, index) => {
-        var characterNum = line.startsWith('人物2') ? 2 : 1;
-        var lineText = line.replace(/人物\d：/g, '');
-        return `
-        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-          <span style="color: #0066FF; font-weight: 500; min-width: 48px;">人物${characterNum}</span>
-          <input type="text" value="${lineText}" style="flex: 1; padding: 10px 12px; border: 2px solid #e8e8e8; border-radius: 6px; font-size: 13px; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'" />
-        </div>
-      `;
-      }).join('');
-      
-      var scenesHtml = data.scenes.map((scene, index) => `
-        <div style="margin-bottom: 10px;">
-          <textarea style="width: 100%; height: 70px; padding: 12px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 13px; resize: none; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'">${scene}</textarea>
-        </div>
-      `).join('');
-      
-      modal.innerHTML = `
+      var innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f0f0f0;">
-          <div style="font-size: 16px; font-weight: 600; color: #333;">${title}</div>
+          <div style="font-size: 16px; font-weight: 600; color: #333;">镜头2：产品初体验</div>
           <button onclick="document.getElementById('scriptModal').remove()" style="width: 28px; height: 28px; background: #f5f5f5; border: none; border-radius: 50%; color: #666; font-size: 16px; cursor: pointer;">×</button>
         </div>
         <div style="padding: 20px; overflow-y: auto; max-height: 60vh;">
           <div style="margin-bottom: 20px;">
             <div style="font-size: 13px; font-weight: 500; color: #666; margin-bottom: 12px;">人物台词</div>
-            ${linesHtml}
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;"><span style="color: #0066FF; font-weight: 500; min-width: 48px;">人物2</span><input type="text" value="试试这个，一步搞定防晒遮瑕。" style="flex: 1; padding: 10px 12px; border: 2px solid #e8e8e8; border-radius: 6px; font-size: 13px; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'" /></div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;"><span style="color: #0066FF; font-weight: 500; min-width: 48px;">人物1</span><input type="text" value="这也太服帖了吧？痘印都看不见了！" style="flex: 1; padding: 10px 12px; border: 2px solid #e8e8e8; border-radius: 6px; font-size: 13px; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'" /></div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;"><span style="color: #0066FF; font-weight: 500; min-width: 48px;">人物1</span><input type="text" value="这也太服帖了吧？" style="flex: 1; padding: 10px 12px; border: 2px solid #e8e8e8; border-radius: 6px; font-size: 13px; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'" /></div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;"><span style="color: #0066FF; font-weight: 500; min-width: 48px;">人物1</span><input type="text" value="持妆八小时都不脱，下午见客户也不怕。" style="flex: 1; padding: 10px 12px; border: 2px solid #e8e8e8; border-radius: 6px; font-size: 13px; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'" /></div>
           </div>
           <div style="margin-bottom: 20px;">
             <div style="font-size: 13px; font-weight: 500; color: #666; margin-bottom: 12px;">画面描述</div>
-            ${scenesHtml}
+            <div style="margin-bottom: 10px;"><textarea style="width: 100%; height: 70px; padding: 12px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 13px; resize: none; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'">近景：冷白顶光茶水间，人物2从精致的手缝包里掏出一个精致的黑色气垫盒，盒面带有清晰品牌logo，双手递到人物1面前，指尖轻轻叩击气垫盒表面，眉梢微扬、眼神笃定；固定机位近景，镜头推近气垫盒logo细节。</textarea></div>
+            <div style="margin-bottom: 10px;"><textarea style="width: 100%; height: 70px; padding: 12px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 13px; resize: none; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'">近景：冷白顶光茶水间，人物1对着镜子轻拍自己的脸颊，指尖划过清透的底妆，眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。</textarea></div>
+            <div style="margin-bottom: 10px;"><textarea style="width: 100%; height: 70px; padding: 12px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 13px; resize: none; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'">近景：冷白顶光茶水间，人物2靠在门框上，双臂交叉，看着人物1的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。</textarea></div>
+            <div style="margin-bottom: 10px;"><textarea style="width: 100%; height: 70px; padding: 12px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 13px; resize: none; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'">中景：冷白顶光茶水间，镜头推近两人互动。</textarea></div>
           </div>
-          <div style="font-size: 13px; font-weight: 500; color: #666; margin-bottom: 12px;">时长：${duration}</div>
+          <div style="font-size: 13px; font-weight: 500; color: #666; margin-bottom: 12px;">时长：约9s</div>
         </div>
         <div style="display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid #f0f0f0;">
           <button onclick="document.getElementById('scriptModal').remove()" style="flex: 1; padding: 10px; background: #f5f5f5; border: none; border-radius: 8px; color: #666; font-size: 14px; cursor: pointer;">取消</button>
@@ -4218,6 +4174,7 @@
         </div>
       `;
       
+      modal.innerHTML = innerHTML;
       document.body.appendChild(modal);
     }
     
