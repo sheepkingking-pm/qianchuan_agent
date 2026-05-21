@@ -19,6 +19,14 @@
       to { transform: rotate(360deg); }
     }
     
+    @keyframes refreshSpin {
+      0% { transform: scale(1); opacity: 1; }
+      25% { transform: scale(0.95) rotate(-3deg); opacity: 0.7; }
+      50% { transform: scale(1) rotate(3deg); opacity: 0.8; }
+      75% { transform: scale(0.98) rotate(-2deg); opacity: 0.9; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; color: #333; background: #f5f7fa; }
     
@@ -549,7 +557,11 @@
     .output-body {
       padding: 16px;
     }
-    
+
+    .output-body > div[style*="grid"] > div:hover .delete-img-btn {
+      opacity: 1 !important;
+    }
+
     .output-item {
       display: flex;
       gap: 12px;
@@ -787,7 +799,7 @@
       min-height: 1.4em;
     }
     .editable-text:hover {
-      background: #e3f2fd;
+      background: rgba(227, 242, 253, 0.5);
     }
     .editable-text:focus {
       outline: 2px solid #0066FF;
@@ -796,6 +808,10 @@
     .editable-text:empty::before {
       content: '双击编辑';
       color: #999;
+    }
+
+    #卖点-container > div:hover > span:last-child {
+      opacity: 1 !important;
     }
   </style>
 </head>
@@ -837,7 +853,7 @@
         <div class="chat-header">
           <span class="chat-title">创作任务详情</span>
           <div class="chat-actions">
-            <button class="action-btn" onclick="createAsSkill()">创建为Skill</button>
+            <button class="action-btn" onclick="window.open('index.html', '_blank')">创建新任务</button>
           </div>
         </div>
         
@@ -873,8 +889,9 @@
               type="text" 
               class="chat-input-field" 
               placeholder="输入您的需求，我来帮您完成..."
+              onkeydown="if(event.key === 'Enter') { sendMessage(); }"
             />
-            <button class="chat-send-btn">
+            <button class="chat-send-btn" onclick="sendMessage()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
@@ -892,18 +909,14 @@
             </div>
             <div class="progress-step">
               <div class="step-dot">2</div>
-              <div class="step-label">创意灵感</div>
+              <div class="step-label">灵感和脚本</div>
             </div>
             <div class="progress-step">
               <div class="step-dot">3</div>
-              <div class="step-label">脚本生成</div>
-            </div>
-            <div class="progress-step">
-              <div class="step-dot">4</div>
               <div class="step-label">分镜预览</div>
             </div>
             <div class="progress-step">
-              <div class="step-dot">5</div>
+              <div class="step-dot">4</div>
               <div class="step-label">成片</div>
             </div>
           </div>
@@ -945,6 +958,33 @@
       }
       
       type();
+    }
+    
+    // 添加用户消息
+    function addUserMessage() {
+      var messages = [
+        "确认，没问题，往下吧",
+        "好的，继续",
+        "可以了，下一步",
+        "没问题，继续吧",
+        "好的，继续往下",
+        "确认，继续",
+        "可以，下一步"
+      ];
+      var randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      
+      var messageContainer = document.querySelector('.chat-messages');
+      var newMessage = document.createElement('div');
+      newMessage.className = 'message user';
+      newMessage.innerHTML = `
+        <div class="avatar"><span>U</span></div>
+        <div class="message-content">
+          <div class="message-text">${randomMessage}</div>
+          <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+      `;
+      messageContainer.appendChild(newMessage);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
     }
     
     // 添加AI消息并带有打字机效果
@@ -1090,6 +1130,26 @@
     }
     
     function hideTagActions(el) {
+      var closeBtn = el.querySelector('span:last-child');
+      if (closeBtn && closeBtn.innerHTML === '×') {
+        closeBtn.remove();
+      }
+    }
+
+    function showSellingPointActions(el) {
+      var closeBtn = document.createElement('span');
+      closeBtn.innerHTML = '×';
+      closeBtn.style.cssText = 'position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; background: #ff4d4f; border-radius: 50%; color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10;';
+      closeBtn.onclick = function(e) {
+        e.stopPropagation();
+        if (confirm('确定删除这个卖点吗？')) {
+          el.remove();
+        }
+      };
+      el.appendChild(closeBtn);
+    }
+
+    function hideSellingPointActions(el) {
       var closeBtn = el.querySelector('span:last-child');
       if (closeBtn && closeBtn.innerHTML === '×') {
         closeBtn.remove();
@@ -1391,52 +1451,55 @@
       var currentStage = document.querySelector('.progress-step.active');
       var stages = document.querySelectorAll('.progress-step');
       var currentIndex = Array.from(stages).indexOf(currentStage);
-      
+
       if (currentIndex < stages.length - 1) {
+        // 添加用户消息（除了阶段二，因为阶段二使用 confirmPlanAndGoNext）
+        if (currentIndex !== 1) {
+          addUserMessage();
+        }
+        
         currentStage.classList.remove('active');
         currentStage.classList.add('completed');
-        
+
         var nextStage = stages[currentIndex + 1];
         nextStage.classList.add('active');
-        
+
         if (currentIndex === 0) {
           // 清空右侧内容，显示待加载状态
           var stageDetailSection = document.querySelector('.stage-detail-section');
           stageDetailSection.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
               <div style="width: 48px; height: 48px; border: 3px solid #0066FF; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-              <div style="margin-top: 16px; font-size: 14px; color: #666;">正在进入创意灵感阶段...</div>
+              <div style="margin-top: 16px; font-size: 14px; color: #666;">正在进入灵感和脚本阶段...</div>
             </div>
           `;
           showStageTwo();
         } else if (currentIndex === 1) {
-          // 这个由 confirmPlanAndGoNext 处理
+          loadStageThreeWithAnimation();
         } else if (currentIndex === 2) {
-          // 这个由 confirmStageThreeAndGoNext 处理
+          loadStageFourWithAnimation();
         }
       }
     }
-    
+
     function goToPrevStage() {
       var currentStage = document.querySelector('.progress-step.active');
       var stages = document.querySelectorAll('.progress-step');
       var currentIndex = Array.from(stages).indexOf(currentStage);
-      
+
       if (currentIndex > 0) {
         currentStage.classList.remove('active');
-        
+
         var prevStage = stages[currentIndex - 1];
         prevStage.classList.remove('completed');
         prevStage.classList.add('active');
-        
+
         if (currentIndex === 1) {
           showStageOne();
         } else if (currentIndex === 2) {
           renderStageTwoContent();
         } else if (currentIndex === 3) {
           showStageThree();
-        } else if (currentIndex === 4) {
-          showStageFour();
         }
       }
     }
@@ -1467,26 +1530,39 @@
             <div class="output-content" style="margin-bottom: 16px;">
               <div class="output-header">
                 <span class="output-title">商品基本信息</span>
+                <span style="font-size: 11px; color: #999; margin-left: 4px;">建议您上传商品不同视角的高清图片（三视图、手持图等），有利于视频创作保持商品和品牌一致性</span>
               </div>
               <div class="output-body">
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px;">
                   <div style="position: relative;">
                     <img src="images/商品主图1.jpg" 
                          alt="商品主图1" 
                          style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
-                    <button onclick="deleteImage(this)" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" class="delete-img-btn">×</button>
                   </div>
                   <div style="position: relative;">
                     <img src="images/商品主图2.jpg" 
                          alt="商品主图2" 
                          style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
-                    <button onclick="deleteImage(this)" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" class="delete-img-btn">×</button>
                   </div>
                   <div style="position: relative;">
                     <img src="images/商品主图3.jpg" 
                          alt="商品主图3" 
                          style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
-                    <button onclick="deleteImage(this)" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" class="delete-img-btn">×</button>
+                  </div>
+                  <div style="position: relative;">
+                    <img src="images/商品主图4.jpg" 
+                         alt="商品主图4" 
+                         style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" class="delete-img-btn">×</button>
+                  </div>
+                  <div style="position: relative;">
+                    <img src="images/商品主图5.jpg" 
+                         alt="商品主图5" 
+                         style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #f5f5f5;"/>
+                    <button onclick="deleteImage(this)" style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.6); border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" class="delete-img-btn">×</button>
                   </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
@@ -1527,73 +1603,41 @@
             <div class="output-content" style="margin-bottom: 16px;">
               <div class="output-header">
                 <span class="output-title">商品核心卖点</span>
-                <span style="font-size: 11px; color: #999; margin-left: 4px;">鼠标覆盖卖点后，可以编辑或者删除卖点</span>
+                <span style="font-size: 11px; color: #999; margin-left: 4px;">创意将围绕商品卖点创作灵感和手法，请核对卖点是否准确，鼠标双击卖点后可修改</span>
               </div>
               <div class="output-body">
                 <div id="卖点-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">💫 自然清透</div>
-                    <div style="font-size: 12px; color: #666;">妆感自然清透，光学柔焦不假面，打造原生雾感肌</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">💫 自然清透</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">妆感自然清透，光学柔焦不假面，打造原生雾感肌</div>
                   </div>
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🔥 持久控油</div>
-                    <div style="font-size: 12px; color: #666;">持妆控油效果好，上妆不油腻，出油出汗不易脱妆</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">🔥 持久控油</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">持妆控油效果好，上妆不油腻，出油出汗不易脱妆</div>
                   </div>
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">✨ 服帖贴合</div>
-                    <div style="font-size: 12px; color: #666;">服帖贴合肌肤，可填平毛孔细纹</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">✨ 服帖贴合</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">服帖贴合肌肤，可填平毛孔细纹</div>
                   </div>
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🎯 遮瑕力佳</div>
-                    <div style="font-size: 12px; color: #666;">遮瑕力佳，可叠加打造妈生皮妆效</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">🎯 遮瑕力佳</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">遮瑕力佳，可叠加打造妈生皮妆效</div>
                   </div>
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🔍 微气孔设计</div>
-                    <div style="font-size: 12px; color: #666;">微气孔设计，取粉均匀锁鲜持久</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">🔍 微气孔设计</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">微气孔设计，取粉均匀锁鲜持久</div>
                   </div>
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">☀️ 高倍防晒</div>
-                    <div style="font-size: 12px; color: #666;">高倍防晒，多效合一（防晒、遮瑕、保湿）</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">☀️ 高倍防晒</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">高倍防晒，多效合一（防晒、遮瑕、保湿）</div>
                   </div>
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">💨 质地轻薄</div>
-                    <div style="font-size: 12px; color: #666;">质地轻薄，妆感细腻有光泽</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">💨 质地轻薄</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">质地轻薄，妆感细腻有光泽</div>
                   </div>
-                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showActions(this)" onmouseleave="hideActions(this)">
-                    <div style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px;">🎁 精致包装</div>
-                    <div style="font-size: 12px; color: #666;">包装设计精致质感佳</div>
-                    <div class="actions" style="position: absolute; top: 8px; right: 8px; opacity: 0; transition: opacity 0.2s;">
-                      <button onclick="editItem(this)" style="margin-right: 4px; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">编辑</button>
-                      <button onclick="deleteItem(this)" style="background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; padding: 2px 6px; font-size: 10px; color: #ff4d4f; cursor: pointer;">删除</button>
-                    </div>
+                  <div style="padding: 12px; background: #f8fafc; border-radius: 8px; position: relative;" onmouseenter="showSellingPointActions(this)" onmouseleave="hideSellingPointActions(this)">
+                    <div class="editable-text selling-point-title" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; font-weight: 500; color: #1976D2; margin-bottom: 4px; cursor: pointer;">🎁 精致包装</div>
+                    <div class="editable-text selling-point-desc" contenteditable="false" ondblclick="enableEdit(this)" style="font-size: 12px; color: #666; cursor: pointer;">包装设计精致质感佳</div>
                   </div>
                 </div>
                 <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
@@ -1652,17 +1696,17 @@
             <div class="output-content" style="margin-bottom: 16px;">
               <div class="output-header">
                 <span class="output-title">人群与场景建议</span>
-                <span style="font-size: 11px; color: #999; margin-left: 4px;">鼠标覆盖卖点后，可以修改或者删除人群场景</span>
+                <span style="font-size: 11px; color: #999; margin-left: 4px;">人群和场景非常影响创作灵感和手法，请核对信息是否准确，鼠标双击后可以修改</span>
               </div>
               <div class="output-body">
-                <div id="人群场景-container" style="display: flex; flex-wrap: gap: 8px;">
-                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">上班族</span>
-                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">学生党</span>
-                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">敏感肌人群</span>
-                  <span class="tag-item" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">油皮/混油皮</span>
-                  <span class="tag-item" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">日常通勤</span>
-                  <span class="tag-item" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">约会聚会</span>
-                  <span class="tag-item" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">职场办公</span>
+                <div id="人群场景-container" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <span class="tag-item editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">上班族</span>
+                  <span class="tag-item editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">学生党</span>
+                  <span class="tag-item editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">敏感肌人群</span>
+                  <span class="tag-item editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="padding: 6px 12px; background: #FFF3E0; border-radius: 20px; font-size: 13px; color: #E65100; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">油皮/混油皮</span>
+                  <span class="tag-item editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">日常通勤</span>
+                  <span class="tag-item editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">约会聚会</span>
+                  <span class="tag-item editable-text" contenteditable="false" ondblclick="enableEdit(this)" style="padding: 6px 12px; background: #E8F5E9; border-radius: 20px; font-size: 13px; color: #2E7D32; position: relative; cursor: pointer; margin-right: 8px; margin-bottom: 8px;" onmouseenter="showTagActions(this)" onmouseleave="hideTagActions(this)">职场办公</span>
                 </div>
                 <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
                   <button onclick="addTag()" style="padding: 6px 12px; background: #fff; border: 1px dashed #0066FF; border-radius: 4px; font-size: 12px; color: #0066FF; cursor: pointer; display: flex; align-items: center; gap: 4px;">
@@ -1710,10 +1754,25 @@
           </div>
         `;
       }
+
+      // 添加商品解析确认消息
+      var messageContainer = document.querySelector('.chat-messages');
+      var newMessage = document.createElement('div');
+      newMessage.className = 'message ai';
+      newMessage.innerHTML = `
+        <div class="avatar"><span>AI</span></div>
+        <div class="message-content">
+          <div class="message-text">商品的图片、卖点、人群解析是否正确？可以修改或者点击确认哦</div>
+          <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+      `;
+      messageContainer.appendChild(newMessage);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
     }
     
     var currentPlanVersion = 1;
     var selectedPlan = null;
+    var activeTab = 1; // 1 for plan one, 2 for plan two
     
     function showStageTwo() {
       var messageContainer = document.querySelector('.chat-messages');
@@ -1730,7 +1789,7 @@
       messageContainer.scrollTop = messageContainer.scrollHeight;
       
       var textElement = newMessage.querySelector('.message-text');
-      var aiMessage = '好滴，你已经确认商品解析内容了，下面我将基于这些信息为你用以下几种方式设计创意灵感，请你选择确认';
+      var aiMessage = '好滴，你已经确认商品解析内容了，下面我将基于这些信息为你用以下两种方式设计创意灵感和脚本';
       
       // 500ms延迟后开始打字
       setTimeout(function() {
@@ -1778,7 +1837,8 @@
       
       // 模拟加载过程后显示完整内容
       setTimeout(function() {
-        selectedPlan = null;
+        selectedPlan = 1; // 默认选中方案一
+        activeTab = 1; // 默认显示方案一
         renderStageTwoContent();
         
         // 更新按钮
@@ -1798,7 +1858,33 @@
             </button>
           </div>
         `;
+
+        // 添加AI追问消息
+        setTimeout(function() {
+          var messageContainer = document.querySelector('.chat-messages');
+          var aiMessageDiv = document.createElement('div');
+          aiMessageDiv.className = 'message ai';
+          aiMessageDiv.innerHTML = `
+            <div class="avatar"><span>AI</span></div>
+            <div class="message-content">
+              <div class="message-text"></div>
+              <div class="message-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</div>
+            </div>
+          `;
+          messageContainer.appendChild(aiMessageDiv);
+          messageContainer.scrollTop = messageContainer.scrollHeight;
+          
+          var textElement = aiMessageDiv.querySelector('.message-text');
+          var aiMessage = '你倾向于方案1还是方案2？或者你也可以直接改台词、脚本甚至人物形象';
+          typeWriterEffect(textElement, aiMessage, 25);
+        }, 500);
       }, 1500);
+    }
+    
+    function selectTab(tabNumber) {
+      activeTab = tabNumber;
+      selectedPlan = tabNumber; // 同步更新选中状态
+      renderStageTwoContent();
     }
     
     function renderStageTwoContent() {
@@ -1816,9 +1902,32 @@
           <div>
             <div class="section-title">创意灵感方案</div>
             
-            ${renderPlanOne()}
+            <!-- 标签页头部 -->
+            <div style="display: flex; position: relative; z-index: 1;">
+              <div 
+                style="padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; border: 2px solid ${activeTab === 1 ? '#0066FF' : '#e8e8e8'}; border-bottom: 2px solid #e8e8e8; color: ${activeTab === 1 ? '#0066FF' : '#666'}; border-radius: 10px 10px 0 0; margin-right: 4px; background: ${activeTab === 1 ? '#fff' : '#fafafa'};"
+                onclick="selectTab(1)"
+              >
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <span style="width: 24px; height: 24px; background: ${activeTab === 1 ? '#0066FF' : '#e8e8e8'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${activeTab === 1 ? '#fff' : '#666'}; font-size: 12px; font-weight: bold;">1</span>
+                  方案一：参考行业爆款
+                </span>
+              </div>
+              <div 
+                style="padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; border: 2px solid ${activeTab === 2 ? '#00C853' : '#e8e8e8'}; border-bottom: 2px solid #e8e8e8; color: ${activeTab === 2 ? '#00C853' : '#666'}; border-radius: 10px 10px 0 0; background: ${activeTab === 2 ? '#fff' : '#fafafa'};"
+                onclick="selectTab(2)"
+              >
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <span style="width: 24px; height: 24px; background: ${activeTab === 2 ? '#00C853' : '#e8e8e8'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${activeTab === 2 ? '#fff' : '#666'}; font-size: 12px; font-weight: bold;">2</span>
+                  方案二：情景剧发散
+                </span>
+              </div>
+            </div>
+            <!-- 分隔线 -->
+            <div style="height: 2px; background: #e8e8e8; margin-bottom: 16px;"></div>
             
-            ${renderPlanTwo()}
+            <!-- 标签页内容 -->
+            ${activeTab === 1 ? renderPlanOne() : renderPlanTwo()}
           </div>
         </div>
       `;
@@ -1886,163 +1995,476 @@
         persona: '种草达人25-35岁，妆容精致，穿着时尚，语言亲切有感染力'
       };
       
-      var borderStyle = selectedPlan === 1 ? 'border: 3px solid #0066FF;' : 'border: 2px solid #e8e8e8;';
+      // 确保 selectedPlan 与 activeTab 同步
+      if (selectedPlan !== 1 && selectedPlan !== 2) {
+        selectedPlan = activeTab;
+      }
+      
+      var borderStyle = selectedPlan === 1 ? 'border-left: 3px solid #0066FF; border-right: 3px solid #0066FF; border-bottom: 3px solid #0066FF;' : 'border-left: 2px solid #e8e8e8; border-right: 2px solid #e8e8e8; border-bottom: 2px solid #e8e8e8;';
       
       return `
-        <div class="output-content" style="margin-bottom: 16px; ${borderStyle} cursor: pointer;" onclick="selectPlan(1)">
-          <div class="output-header" style="display: flex; align-items: center; justify-content: space-between;">
-            <span class="output-title" style="display: flex; align-items: center; gap: 8px;">
-              <span style="width: 24px; height: 24px; background: #0066FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: bold;">1</span>
-              方案一：参考行业爆款
-            </span>
-            <span onclick="event.stopPropagation(); switchPlanVersion()" style="font-size: 12px; color: #0066FF; cursor: pointer;">换一批同行视频</span>
-          </div>
+        <div class="output-content" style="margin-bottom: 16px; ${borderStyle} cursor: pointer; border-top: none; border-radius: 0 0 10px 10px;" onclick="selectPlan(1)">
           <div class="output-body">
-            <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">灵感梗概</div>
-              <div style="font-size: 13px; color: #333; line-height: 1.6;">
-                ${planData.summary}
-              </div>
-            </div>
             
-            <div style="margin-bottom: 16px;">
-              <div style="margin-bottom: 12px;">
-                <div style="font-size: 13px; font-weight: 500; color: #333;">同行爆款案例</div>
+            <!-- 灵感洞察 -->
+            <div style="margin-bottom: 24px;">
+              <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 4px; height: 18px; background: linear-gradient(180deg, #0066FF 0%, #0047CC 100%); border-radius: 2px;"></span>
+                灵感洞察
               </div>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
-                  <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
-                    <source src="videos/${encodeURI(planData.videoImages[0])}" type="video/mp4">
-                  </video>
-                  <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
-                    <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
-                  </div>
-                  <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '1' : '4'}</div>
-                </div>
-                <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
-                  <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
-                    <source src="videos/${encodeURI(planData.videoImages[1])}" type="video/mp4">
-                  </video>
-                  <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
-                    <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
-                  </div>
-                  <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '2' : '5'}</div>
-                </div>
-                <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative;">
-                  <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
-                    <source src="videos/${encodeURI(planData.videoImages[2])}" type="video/mp4">
-                  </video>
-                  <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
-                    <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
-                  </div>
-                  <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '3' : '6'}</div>
-                </div>
-              </div>
-            </div>
-            
-            <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: #999; margin-bottom: 8px;">同行爆款手法解析</div>
               
-              <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">吸睛开头-场景共鸣+身份认同</div>
-                <div style="font-size: 12px; color: #666; line-height: 1.5;">
-                  ${planData.hookDesc}
+              <!-- 灵感梗概 -->
+              <div style="margin-bottom: 16px; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 3px; height: 12px; background: #0066FF; border-radius: 2px;"></span>
+                  灵感梗概
+                </div>
+                <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                  ${planData.summary}
                 </div>
               </div>
               
-              <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">产品卖点</div>
-                <div style="font-size: 12px; color: #666; line-height: 1.5;">
-                  ${planData.sellingPoints}
+              <!-- 同行爆款案例 -->
+              <div style="margin-bottom: 16px;">
+                <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="width: 3px; height: 12px; background: #0066FF; border-radius: 2px;"></span>
+                    同行爆款案例
+                  </div>
+                  <span onclick="event.stopPropagation(); switchPlanVersion()" style="font-size: 12px; color: #0066FF; cursor: pointer;">换一批同行视频</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                  <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                      <source src="videos/${encodeURI(planData.videoImages[0])}" type="video/mp4">
+                    </video>
+                    <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
+                      <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
+                    </div>
+                    <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '1' : '4'}</div>
+                  </div>
+                  <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                      <source src="videos/${encodeURI(planData.videoImages[1])}" type="video/mp4">
+                    </video>
+                    <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
+                      <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
+                    </div>
+                    <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '2' : '5'}</div>
+                  </div>
+                  <div style="aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <video class="reference-video" loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                      <source src="videos/${encodeURI(planData.videoImages[2])}" type="video/mp4">
+                    </video>
+                    <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); opacity: 1;">
+                      <span style="color: white; font-size: 24px; opacity: 0.9;">▶</span>
+                    </div>
+                    <div class="video-title" style="position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 4px 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size: 12px; color: white; text-align: center;">参考视频${currentPlanVersion === 1 ? '3' : '6'}</div>
+                  </div>
                 </div>
               </div>
               
-              <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
-                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">卖点表现形式</div>
-                <div style="font-size: 12px; color: #666; line-height: 1.5;">
-                  ${planData.expression}
+              <!-- 手法解析 -->
+              <div style="padding: 16px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 3px; height: 12px; background: #0066FF; border-radius: 2px;"></span>
+                  同行爆款手法解析
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 6px;">${planData.hookTitle}</div>
+                  <div style="font-size: 12px; color: #666; line-height: 1.6;">
+                    ${planData.hookDesc}
+                  </div>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 6px;">产品卖点</div>
+                  <div style="font-size: 12px; color: #666; line-height: 1.6;">
+                    ${planData.sellingPoints}
+                  </div>
+                </div>
+                
+                <div>
+                  <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 6px;">卖点表现形式</div>
+                  <div style="font-size: 12px; color: #666; line-height: 1.6;">
+                    ${planData.expression}
+                  </div>
                 </div>
               </div>
             </div>
             
-            <div style="padding: 12px; background: #f0f5ff; border-radius: 8px;">
-              <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">面向人群和痛点</div>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-                <div>
-                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">推广人群</div>
-                  <div style="font-size: 12px; color: #333;">${planData.audience}</div>
-                </div>
-                <div>
-                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">人群痛点</div>
-                  <div style="font-size: 12px; color: #333;">${planData.painPoints}</div>
-                </div>
-                <div>
-                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">口播人设</div>
-                  <div style="font-size: 12px; color: #333;">${planData.persona}</div>
+            <!-- 面向人群和痛点 -->
+            <div>
+              <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 4px; height: 18px; background: linear-gradient(180deg, #FF6B35 0%, #E55A2B 100%); border-radius: 2px;"></span>
+                面向人群和痛点
+              </div>
+              <div style="padding: 16px; background: #f0f5ff; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                  <div>
+                    <div style="font-size: 11px; color: #999; margin-bottom: 4px;">推广人群</div>
+                    <div style="font-size: 12px; color: #333; font-weight: 500;">${planData.audience}</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; color: #999; margin-bottom: 4px;">人群痛点</div>
+                    <div style="font-size: 12px; color: #333; font-weight: 500;">${planData.painPoints}</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; color: #999; margin-bottom: 4px;">口播人设</div>
+                    <div style="font-size: 12px; color: #333; font-weight: 500;">${planData.persona}</div>
+                  </div>
                 </div>
               </div>
             </div>
+            
           </div>
         </div>
       `;
     }
     
     function renderPlanTwo() {
-      var borderStyle = selectedPlan === 2 ? 'border: 3px solid #00C853;' : 'border: 2px solid #e8e8e8;';
+      // 确保 selectedPlan 与 activeTab 同步
+      if (selectedPlan !== 1 && selectedPlan !== 2) {
+        selectedPlan = activeTab;
+      }
+      
+      var borderStyle = selectedPlan === 2 ? 'border-left: 3px solid #00C853; border-right: 3px solid #00C853; border-bottom: 3px solid #00C853;' : 'border-left: 2px solid #e8e8e8; border-right: 2px solid #e8e8e8; border-bottom: 2px solid #e8e8e8;';
       
       return `
-        <div class="output-content" style="${borderStyle} cursor: pointer;" onclick="selectPlan(2)">
-          <div class="output-header">
-            <span class="output-title" style="display: flex; align-items: center; gap: 8px;">
-              <span style="width: 24px; height: 24px; background: #00C853; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: bold;">2</span>
-              方案二：情景剧发散
-            </span>
-          </div>
+        <div class="output-content" style="${borderStyle} cursor: pointer; border-top: none; border-radius: 0 0 10px 10px;" onclick="selectPlan(2)">
           <div class="output-body">
-            <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">灵感梗概</div>
-              <div style="font-size: 13px; color: #333; line-height: 1.6;">
-                以都市25-35岁职场女性的晨间通勤场景为背景，通过同事A因赶时间化妆步骤繁琐、底妆斑驳焦虑，同事B推荐气垫BB，A试用后快速打造清透持妆肌的剧情，展现产品多效合一、持妆控油、遮瑕服帖的核心优势，搭配紧急赶时间的紧张感和妆效对比，贴合目标人群日常痛点，最后以A轻松出门的场景号召尝试。
+            
+            <!-- 灵感洞察 -->
+            <div style="margin-bottom: 24px;">
+              <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 4px; height: 18px; background: linear-gradient(180deg, #00C853 0%, #00A843 100%); border-radius: 2px;"></span>
+                灵感洞察
+              </div>
+              
+              <!-- 灵感梗概 -->
+              <div style="margin-bottom: 16px; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 3px; height: 12px; background: #00C853; border-radius: 2px;"></span>
+                  灵感梗概
+                </div>
+                <div style="font-size: 13px; color: #333; line-height: 1.7;">
+                  以都市25-35岁职场女性的晨间通勤场景为背景，通过同事A因赶时间化妆步骤繁琐、底妆斑驳焦虑，同事B推荐气垫BB，A试用后快速打造清透持妆肌的剧情，展现产品多效合一、持妆控油、遮瑕服帖的核心优势，搭配紧急赶时间的紧张感和妆效对比，贴合目标人群日常痛点，最后以A轻松出门的场景号召尝试。
+                </div>
+              </div>
+              
+              <!-- 手法解析 -->
+              <div style="padding: 16px; background: #f8fafc; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 3px; height: 12px; background: #00C853; border-radius: 2px;"></span>
+                  手法解析
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 6px;">突出卖点</div>
+                  <div style="font-size: 12px; color: #666; line-height: 1.6;">
+                    多效合一（防晒、遮瑕、保湿）、持妆控油不脱妆、遮瑕力佳服帖妆感自然清透、微气孔取粉均匀、包装精致
+                  </div>
+                </div>
+                
+                <div>
+                  <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 6px;">卖点表现形式</div>
+                  <div style="font-size: 12px; color: #666; line-height: 1.8;">
+                    1. 剧情演绎：A抱怨"又要涂防晒又要遮痘印，来不及了"，B递气垫说"这个一步搞定"；<br>
+                    2. 前后对比：特写A原底妆斑驳卡粉，试用后毛孔痘印隐形、肌肤清透；<br>
+                    3. 细节展示：特写气垫微气孔取粉，轻拍即服帖，后续快速出门不脱妆。
+                  </div>
+                </div>
+                
+                <!-- 面向人群和痛点 -->
+                <div style="margin-top: 16px; padding: 16px; background: #E8F5E9; border-radius: 8px;">
+                  <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <span style="width: 3px; height: 12px; background: #00C853; border-radius: 2px;"></span>
+                    面向人群和痛点
+                  </div>
+                  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                    <div>
+                      <div style="font-size: 11px; color: #999; margin-bottom: 4px;">推广人群</div>
+                      <div style="font-size: 12px; color: #333;">都市25-35岁职场女性</div>
+                    </div>
+                    <div>
+                      <div style="font-size: 11px; color: #999; margin-bottom: 4px;">人群痛点</div>
+                      <div style="font-size: 12px; color: #333;">通勤化妆步骤繁琐耗时，底妆易脱妆斑驳，遮瑕与轻薄难兼顾</div>
+                    </div>
+                    <div>
+                      <div style="font-size: 11px; color: #999; margin-bottom: 4px;">口播人设</div>
+                      <div style="font-size: 12px; color: #333;">A：26岁，职场新人，赶时间时妆容斑驳，身着职业装，显得焦虑；B：28岁，干练白领，妆容精致，身着职业装，语气轻松可靠。</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div style="margin-bottom: 16px;">
-              <div style="font-size: 12px; color: #999; margin-bottom: 8px;">手法解析</div>
+            <!-- 素材清单 -->
+            <div style="margin-bottom: 24px;">
+              <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 4px; height: 18px; background: linear-gradient(180deg, #FF6B35 0%, #E55A2B 100%); border-radius: 2px;"></span>
+                素材清单
+              </div>
               
-              <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">突出卖点</div>
-                <div style="font-size: 12px; color: #666; line-height: 1.5;">
-                  多效合一（防晒、遮瑕、保湿）、持妆控油不脱妆、遮瑕力佳服帖妆感自然清透、微气孔取粉均匀、包装精致
+              <!-- 角色清单 -->
+              <div style="margin-bottom: 16px;">
+                <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 3px; height: 12px; background: #FF6B35; border-radius: 2px;"></span>
+                  角色清单
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                  <div id="character1-card" style="padding: 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e8e8e8;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                      <div id="character1-image-container" style="width: 110px; height: 140px; flex-shrink: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; position: relative;" onclick="openImageViewer(document.getElementById('character1-image').src, '人物1形象')">
+                        <img id="character1-image" src="images/人物3形象.jpg" alt="人物1形象" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center;" onmouseenter="this.style.opacity='1';" onmouseleave="this.style.opacity='0';">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                          </svg>
+                        </div>
+                      </div>
+                      <div style="flex: 1;">
+                        <div style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                          人物1
+                          <span style="font-size: 11px; color: #0066FF; background: #e3f2fd; padding: 3px 10px; border-radius: 12px; font-weight: 500;">主角</span>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px;"><span style="font-weight: 500;">性别：</span>女</div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                          <span style="font-weight: 500;">音色：</span>
+                          <span id="voice-label-1" style="color: #0066FF; font-weight: 500;">甜美女声</span>
+                          <button onclick="event.stopPropagation(); playVoice(1)" style="width: 24px; height: 24px; border: none; background: #e3f2fd; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseenter="this.style.background='#b3d9ff';" onmouseleave="this.style.background='#e3f2fd';" title="播放声音">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                              <path d="M19 12v6a6 6 0 0 1-6 6H5a6 6 0 0 1-6-6v-6a6 6 0 0 1 6-6h8a6 6 0 0 1 6 6"></path>
+                            </svg>
+                          </button>
+                          <button onclick="event.stopPropagation(); showVoiceModal(1)" style="font-size: 11px; color: #FF6B35; background: #fff; border: 1px solid #FF6B35; padding: 3px 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#fff5f0';" onmouseleave="this.style.background='#fff';" title="修改声音">
+                            修改声音
+                          </button>
+                        </div>
+                        <div>
+                          <div style="font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500;">特征：</div>
+                          <div id="character1-feature" class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="font-size: 12px; color: #333; line-height: 1.6; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed #e8e8e8; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f0f7ff'; this.style.border-color='#0066FF';" onmouseleave="this.style.background='#fff'; this.style.border-color='#e8e8e8';">
+                            穿宽松连帽卫衣，扎高马尾，圆脸，五官清新柔和，面对否定时低头抠手指显局促，使用前皮肤状态差（长痘、泛红），试用后眼光亮起显自信。
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style="padding: 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e8e8e8;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                      <div style="width: 110px; height: 140px; flex-shrink: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; position: relative;" onclick="openImageViewer('images/人物2形象.jpg', '人物2形象')">
+                        <img src="images/人物2形象.jpg" alt="人物2形象" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center;" onmouseenter="this.style.opacity='1';" onmouseleave="this.style.opacity='0';">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                          </svg>
+                        </div>
+                      </div>
+                      <div style="flex: 1;">
+                        <div style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                          人物2
+                          <span style="font-size: 11px; color: #00C853; background: #e8f5e9; padding: 3px 10px; border-radius: 12px; font-weight: 500;">配角</span>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px;"><span style="font-weight: 500;">与主角关系：</span>女主同事</div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px;"><span style="font-weight: 500;">性别：</span>女</div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                          <span style="font-weight: 500;">音色：</span>
+                          <span id="voice-label-2" style="color: #0066FF; font-weight: 500;">成熟御姐</span>
+                          <button onclick="event.stopPropagation(); playVoice(2)" style="width: 24px; height: 24px; border: none; background: #e3f2fd; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseenter="this.style.background='#b3d9ff';" onmouseleave="this.style.background='#e3f2fd';" title="播放声音">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                              <path d="M19 12v6a6 6 0 0 1-6 6H5a6 6 0 0 1-6-6v-6a6 6 0 0 1 6-6h8a6 6 0 0 1 6 6"></path>
+                            </svg>
+                          </button>
+                          <button onclick="event.stopPropagation(); showVoiceModal(2)" style="font-size: 11px; color: #FF6B35; background: #fff; border: 1px solid #FF6B35; padding: 3px 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#fff5f0';" onmouseleave="this.style.background='#fff';" title="修改声音">
+                            修改声音
+                          </button>
+                        </div>
+                        <div>
+                          <div style="font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500;">特征：</div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="font-size: 12px; color: #333; line-height: 1.6; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed #e8e8e8; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f0f7ff'; this.style.border-color='#0066FF';" onmouseleave="this.style.background='#fff'; this.style.border-color='#e8e8e8';">
+                            精致时尚，中长发扎低马尾，穿白色西装套裙搭配精致配饰，底妆清透服帖，语气自信从容，职场形象时尚精致
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
-                <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">卖点表现形式</div>
-                <div style="font-size: 12px; color: #666; line-height: 1.5;">
-                  1. 剧情演绎：A抱怨"又要涂防晒又要遮痘印，来不及了"，B递气垫说"这个一步搞定"；<br>
-                  2. 前后对比：特写A原底妆斑驳卡粉，试用后毛孔痘印隐形、肌肤清透；<br>
-                  3. 细节展示：特写气垫微气孔取粉，轻拍即服帖，后续快速出门不脱妆。
+              <!-- 场景清单 -->
+              <div>
+                <div style="font-size: 12px; font-weight: 500; color: #666; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 3px; height: 12px; background: #FF6B35; border-radius: 2px;"></span>
+                  场景清单
+                </div>
+                <div style="padding: 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e8e8e8;">
+                  <div style="display: flex; gap: 16px; align-items: flex-start;">
+                    <div style="width: 200px; height: 140px; flex-shrink: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; position: relative;" onclick="openImageViewer('images/场景图.jpg', '场景图')">
+                      <img src="images/场景图.jpg" alt="场景图" style="width: 100%; height: 100%; object-fit: cover;">
+                      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center;" onmouseenter="this.style.opacity='1';" onmouseleave="this.style.opacity='0';">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 10px;">公司茶水间</div>
+                      <div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500;">场景描述：</div>
+                        <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="font-size: 12px; color: #333; line-height: 1.6; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed #e8e8e8; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f0f7ff'; this.style.border-color='#0066FF';" onmouseleave="this.style.background='#fff'; this.style.border-color='#e8e8e8';">
+                          光线明亮、空间宽敞、有镜子和台面
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             
-            <div style="padding: 12px; background: #E8F5E9; border-radius: 8px;">
-              <div style="font-size: 12px; font-weight: 500; color: #333; margin-bottom: 8px;">面向人群和痛点</div>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-                <div>
-                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">推广人群</div>
-                  <div style="font-size: 12px; color: #333;">都市25-35岁职场女性</div>
-                </div>
-                <div>
-                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">人群痛点</div>
-                  <div style="font-size: 12px; color: #333;">通勤化妆步骤繁琐耗时，底妆易脱妆斑驳，遮瑕与轻薄难兼顾</div>
-                </div>
-                <div>
-                  <div style="font-size: 11px; color: #999; margin-bottom: 4px;">口播人设</div>
-                  <div style="font-size: 12px; color: #333;">A：26岁，职场新人，赶时间时妆容斑驳，身着职业装，显得焦虑；B：28岁，干练白领，妆容精致，身着职业装，语气轻松可靠。</div>
+            <!-- 脚本设计 -->
+            <div style="margin-bottom: 24px;">
+              <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 4px; height: 18px; background: linear-gradient(180deg, #0066FF 0%, #0047CC 100%); border-radius: 2px;"></span>
+                脚本设计
+              </div>
+              
+              <div style="background: #f8fafc; border-radius: 8px; overflow: hidden;">
+                <div style="overflow-x: auto;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px;">
+                    <thead>
+                      <tr style="background: #1a1a1a; color: #fff;">
+                        <th style="padding: 12px; text-align: left; border: 1px solid #333; width: 120px; font-weight: 600;">镜头</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #333; width: 35%; font-weight: 600;">人物台词</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #333; width: 45%; font-weight: 600;">画面描述</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #333; width: 80px; font-weight: 600;">预估时间</th>
+                      </tr>
+                    </thead>
+                    <tbody style="background: #fafafa;">
+                      <!-- 镜头1 -->
+                      <tr>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; background: #f5f5f5;">
+                          <div style="font-weight: 600; margin-bottom: 4px;">镜头1</div>
+                          <div style="font-size: 12px; color: #666;">新人赶时间底妆翻车，同事犀利吐槽</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">又要涂防晒又要遮痘印，来不及了！</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">怎么还是卡粉啊...</span>
+                          </div>
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">你这底妆斑驳成这样，客户见了不吓跑？</span>
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>中景：</strong>清晨办公区茶水间，冷白顶光下氛围匆忙。<strong>人物1</strong>站在镜子前，双手捧脸端详，手指戳着脸上斑驳的脱妆晒黑的痘印仍明显泛红，眉头紧锁，嘴角下撇，右手腕不断撸过手表看时间。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>低头用手指顺脸颊推粉底，指尖仍卡在粉底液的痕迹仍在，拇指轻刮眼周一道粉。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>站在<strong>人物1</strong>身后，双手抱臂，目光扫过她斑驳的底妆，嘴角微微带着调侃，身体重心偏向一侧。
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约9s</td>
+                      </tr>
+                      
+                      <!-- 镜头2 -->
+                      <tr>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; background: #f5f5f5;">
+                          <div style="font-weight: 600; margin-bottom: 4px;">镜头2</div>
+                          <div style="font-size: 12px; color: #666;">气垫救场显效，新人惊喜验证</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">试试这个，一步搞定防晒遮瑕。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">这也太服帖了吧？痘印都看不见了！</span>
+                          </div>
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #2E7D32; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物2</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">持妆八小时都不脱，下午见客户也不怕。</span>
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>近景：</strong>冷白顶光茶水间，<strong>人物2</strong>从精致的手缝包里掏出一个精致的黑色气垫盒，盒面带有清晰品牌logo，双手递到<strong>人物1</strong>面前，指尖轻轻叩击气垫盒表面，眉梢微扬、眼神笃定；固定机位近景，镜头推近气垫盒logo细节。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>近景：</strong>冷白顶光茶水间，<strong>人物1</strong>对着镜子轻拍自己的脸颊，指尖划过清透的底妆，眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>中景：</strong>冷白顶光茶水间，<strong>人物2</strong>靠在门框上，双臂交叉，看着<strong>人物1</strong>的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约9s</td>
+                      </tr>
+                      
+                      <!-- 镜头3 -->
+                      <tr>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; background: #f5f5f5;">
+                          <div style="font-weight: 600; margin-bottom: 4px;">镜头3</div>
+                          <div style="font-size: 12px; color: #666;">核心卖点直观展示</div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">这款气垫BB，防晒遮瑕一步到位。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">微气孔设计取粉均匀，上脸服帖不卡粉。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">打造原生雾感肌，像天生好皮肤。</span>
+                          </div>
+                          <div class="line-item" style="margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">高倍防晒，通勤化妆不再繁琐。</span>
+                          </div>
+                          <div class="line-item" style="padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" onmouseenter="this.style.background='#e3f2fd';" onmouseleave="this.style.background='transparent';" onclick="event.stopPropagation()">
+                            <span style="display: inline-block; background: #0066FF; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">人物1</span>
+                            <span class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 2px 4px; border-radius: 3px; transition: background 0.2s;" onmouseenter="this.style.background='rgba(0, 102, 255, 0.1)';" onmouseleave="this.style.background='transparent';">现在下单，职场精致肌轻松拥有。</span>
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top;">
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>近景：</strong>干净白色背景、柔光均匀打亮。<strong>人物1</strong>面向镜头，右手托着黑色气垫盒，盒面品牌logo清晰可见，左手食指轻点气垫表面，眼神认真直视；固定机位近景，镜头聚焦气垫盒logo。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>特写：</strong>柔光下，气垫微气孔扑蘸取粉底，粉量均匀附着在粉扑上，镜头缓慢推近粉扑细节；微距特写，背景虚化。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>近景：</strong>白色背景柔光，<strong>人物1</strong>用粉扑轻拍自己的右脸颊，底妆自然清透，她对着镜头转脸展示侧脸，嘴角上扬、机位近景，收音突出轻拍声。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>近景：</strong>白色背景柔光，<strong>人物1</strong>面向镜头，右手举起气垫盒展示精致包装，盒面品牌logo清晰，左手食指指向SPF40+PA+++标识，眼神笃定；固定机位近景，镜头先推近logo再移至SPF标识。
+                          </div>
+                          <div class="editable-text" contenteditable="false" ondblclick="enableEdit(this)" onclick="event.stopPropagation()" style="padding: 8px; background: #fff; border-radius: 6px; border: 1px dashed transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#f8fafc'; this.style.borderColor='#e8e8e8';" onmouseleave="this.style.background='#fff'; this.style.borderColor='transparent';">
+                            <strong>近景：</strong>白色背景柔光，<strong>人物1</strong>双手捧着气垫盒，嘴角弧度自然，眼神直视镜头；固定机位近景，镜头稳定。
+                          </div>
+                        </td>
+                        <td style="padding: 12px; border: 1px solid #e8e8e8; vertical-align: top; text-align: center;">约15s</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
+            
           </div>
         </div>
       `;
@@ -2058,11 +2480,383 @@
       renderStageTwoContent();
     }
     
+    // 双击启用编辑功能
+    function enableEdit(element) {
+      event.stopPropagation(); // 阻止事件冒泡，避免触发方案选择
+      element.contentEditable = 'true';
+      element.focus();
+      element.style.background = '#fff';
+      element.style.border = '2px solid #0066FF';
+      element.style.boxShadow = '0 0 0 3px rgba(0, 102, 255, 0.1)';
+      
+      // 选中所有文本
+      var range = document.createRange();
+      range.selectNodeContents(element);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // 失去焦点时禁用编辑
+      element.onblur = function() {
+        element.contentEditable = 'false';
+        element.style.background = '#fff';
+        element.style.border = '1px dashed #e8e8e8';
+        element.style.boxShadow = 'none';
+      };
+      
+      // 回车键时禁用编辑
+      element.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          element.blur();
+        }
+      };
+      
+      // 阻止点击事件冒泡
+      element.onclick = function(e) {
+        e.stopPropagation();
+      };
+    }
+    
+    // 播放声音
+    function playVoice(characterId) {
+      var voices = {
+        1: '甜美女声',
+        2: '成熟御姐'
+      };
+      var text = characterId === 1 ? '这款气垫BB，防晒遮瑕一步到位。' : '试试这个，一步搞定防晒遮瑕。';
+      
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        
+        var utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert('您的浏览器不支持语音合成功能');
+      }
+    }
+    
+    // 音色列表
+    var voiceList = [
+      { id: 1, name: '甜美女声', desc: '年轻可爱，适合活泼角色' },
+      { id: 2, name: '成熟御姐', desc: '温柔知性，适合职场角色' },
+      { id: 3, name: '邻家女孩', desc: '亲切自然，亲和力强' },
+      { id: 4, name: '播音主持', desc: '专业标准，声音清晰' },
+      { id: 5, name: '温柔女声', desc: '柔和温暖，娓娓道来' },
+      { id: 6, name: '活力少女', desc: '元气满满，充满朝气' }
+    ];
+    
+    var currentCharacterId = 0;
+    
+    // 显示音色选择弹窗
+    function showVoiceModal(characterId) {
+      currentCharacterId = characterId;
+      var modal = document.createElement('div');
+      modal.id = 'voice-modal';
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      `;
+      
+      var content = document.createElement('div');
+      content.style.cssText = `
+        background: #fff;
+        border-radius: 12px;
+        width: 400px;
+        max-height: 80vh;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      `;
+      
+      var header = document.createElement('div');
+      header.style.cssText = `
+        padding: 16px 20px;
+        border-bottom: 1px solid #e8e8e8;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      `;
+      header.innerHTML = `
+        <span style="font-size: 15px; font-weight: 600; color: #333;">选择音色</span>
+        <button onclick="document.getElementById('voice-modal').remove()" style="width: 28px; height: 28px; border: none; background: #f0f0f0; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseenter="this.style.background='#e0e0e0'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      `;
+      
+      var body = document.createElement('div');
+      body.style.cssText = `
+        padding: 16px;
+        max-height: 300px;
+        overflow-y: auto;
+      `;
+      
+      var list = document.createElement('div');
+      list.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      `;
+      
+      voiceList.forEach(function(voice) {
+        var item = document.createElement('div');
+        item.style.cssText = `
+          padding: 12px 16px;
+          background: #f8fafc;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        `;
+        item.onmouseenter = function() {
+          item.style.background = '#e3f2fd';
+        };
+        item.onmouseleave = function() {
+          item.style.background = '#f8fafc';
+        };
+        item.onclick = function() {
+          selectVoice(voice);
+        };
+        
+        item.innerHTML = `
+          <div>
+            <div style="font-size: 14px; font-weight: 500; color: #333;">${voice.name}</div>
+            <div style="font-size: 12px; color: #999; margin-top: 2px;">${voice.desc}</div>
+          </div>
+          <button onclick="event.stopPropagation(); previewVoice('${voice.name}')" style="width: 28px; height: 28px; border: none; background: #fff; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" title="预览声音">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+        `;
+        
+        list.appendChild(item);
+      });
+      
+      body.appendChild(list);
+      content.appendChild(header);
+      content.appendChild(body);
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      modal.onclick = function(e) {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      };
+    }
+    
+    // 预览音色
+    function previewVoice(voiceName) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        
+        var utterance = new SpeechSynthesisUtterance('您好，这是' + voiceName + '的声音示例。');
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.9;
+        
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+    
+    // 选择音色
+    function selectVoice(voice) {
+      document.getElementById('voice-label-' + currentCharacterId).textContent = voice.name;
+      document.getElementById('voice-modal').remove();
+    }
+    
+    // 图片查看器
+    function openImageViewer(imageUrl, title) {
+      var modal = document.createElement('div');
+      modal.id = 'image-viewer-modal';
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        cursor: pointer;
+      `;
+      
+      var header = document.createElement('div');
+      header.style.cssText = `
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 500;
+        z-index: 1;
+      `;
+      header.textContent = title;
+      
+      var img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = title;
+      img.style.cssText = `
+        max-width: 90vw;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        cursor: zoom-in;
+      `;
+      
+      var closeBtn = document.createElement('button');
+      closeBtn.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      `;
+      closeBtn.style.cssText = `
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      `;
+      closeBtn.onmouseenter = function() {
+        closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+      };
+      closeBtn.onmouseleave = function() {
+        closeBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+      };
+      
+      closeBtn.onclick = function(e) {
+        e.stopPropagation();
+        modal.remove();
+      };
+      
+      modal.onclick = function() {
+        modal.remove();
+      };
+      
+      img.onclick = function(e) {
+        e.stopPropagation();
+      };
+      
+      modal.appendChild(header);
+      modal.appendChild(img);
+      modal.appendChild(closeBtn);
+      document.body.appendChild(modal);
+    }
+    
+    // 发送消息
+    function sendMessage() {
+      var input = document.querySelector('.chat-input-field');
+      var message = input.value.trim();
+      
+      if (!message) return;
+      
+      // 添加客户消息
+      var clientMsg = document.createElement('div');
+      clientMsg.className = 'message user';
+      clientMsg.innerHTML = '<div class="avatar"><span>U</span></div><div class="message-content"><div class="message-text">' + message + '</div><div class="message-time">' + new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'}) + '</div></div>';
+      
+      var messagesContainer = document.querySelector('.chat-messages');
+      messagesContainer.appendChild(clientMsg);
+      
+      // 清空输入框
+      input.value = '';
+      
+      // 滚动到底部
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // 模拟系统回复
+      setTimeout(function() {
+        var systemMsg = document.createElement('div');
+        systemMsg.className = 'message ai';
+        systemMsg.innerHTML = '<div class="avatar"><span>AI</span></div><div class="message-content"><div class="message-text">收到，我来帮您处理...</div><div class="message-time">' + new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'}) + '</div></div>';
+        messagesContainer.appendChild(systemMsg);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // AI回复后刷新人物1卡片（1秒动画）
+        setTimeout(refreshCharacter1, 300);
+      }, 500);
+    }
+    
+    // 刷新人物1信息（带动画效果）
+    function refreshCharacter1() {
+      var card = document.getElementById('character1-card');
+      var image = document.getElementById('character1-image');
+      var feature = document.getElementById('character1-feature');
+      
+      // 添加刷新动画（1秒）
+      card.style.animation = 'none';
+      setTimeout(function() {
+        card.style.animation = 'refreshSpin 1s ease-in-out';
+      }, 10);
+      
+      // 延迟更新内容，配合动画
+      setTimeout(function() {
+        image.src = 'images/人物1形象.jpg';
+        feature.textContent = '职场新人，圆脸，齐肩短发，穿浅蓝衬衫配西裤，使用气垫前肌肤略粗糙，面部有泛红痘印，赶时间时妆容斑驳卡粉，性格略带急躁但愿意尝试新东西';
+      }, 500);
+    }
+    
+    // 添加角色修改对话
+    function addCharacterModifyDialog() {
+      // 添加客户消息
+      var clientMsg = document.createElement('div');
+      clientMsg.className = 'message client-message';
+      clientMsg.innerHTML = '<div class="message-content">两个角色五官气质太接近了，更换一下人物1的脸型、五官，而且太学生气了</div>';
+      
+      // 添加系统回复
+      var systemMsg = document.createElement('div');
+      systemMsg.className = 'message system-message';
+      systemMsg.innerHTML = '<div class="message-content">马上改一版给你看看</div>';
+      
+      var messagesContainer = document.querySelector('.conversation-container');
+      messagesContainer.appendChild(clientMsg);
+      messagesContainer.appendChild(systemMsg);
+      
+      // 滚动到底部
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // 延迟刷新人物1信息
+      setTimeout(refreshCharacter1, 800);
+    }
+    
     function confirmPlanAndGoNext() {
       if (!selectedPlan) {
         alert('请先选择一个方案！');
         return;
       }
+      
+      // 添加用户消息
+      addUserMessage();
       
       var messageContainer = document.querySelector('.chat-messages');
       var newMessage = document.createElement('div');
@@ -2078,24 +2872,25 @@
       messageContainer.scrollTop = messageContainer.scrollHeight;
       
       var textElement = newMessage.querySelector('.message-text');
-      var aiMessage = `好滴，你已经确认方案${selectedPlan}了，下面我将围绕这个灵感为你设计脚本`;
+      var aiMessage = `好滴，你已经确认方案${selectedPlan}了，下面我将生成分镜，分镜生成可能需要15-30分钟，你可以同时去创建新的创作任务`;
       
-      // 清空右侧内容，显示待加载状态
+      // 立即清空右侧内容，避免闪烁
       var stageDetailSection = document.querySelector('.stage-detail-section');
-      stageDetailSection.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
-          <div style="width: 48px; height: 48px; border: 3px solid #0066FF; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <div style="margin-top: 16px; font-size: 14px; color: #666;">正在进入脚本生成阶段...</div>
-        </div>
-      `;
+      stageDetailSection.innerHTML = '';
       
-      goToNextStage();
+      // 切换到阶段三（不调用goToNextStage避免重复）
+      var currentStage = document.querySelector('.progress-step.active');
+      currentStage.classList.remove('active');
+      currentStage.classList.add('completed');
+      
+      var stages = document.querySelectorAll('.progress-step');
+      stages[2].classList.add('active');
       
       // 500ms延迟后开始打字
       setTimeout(function() {
         typeWriterEffect(textElement, aiMessage, 25);
         
-        // 等待打字完成后加载右侧内容
+        // 打字完成后显示加载状态
         var checkTyping = setInterval(function() {
           if (!textElement.classList.contains('typing')) {
             clearInterval(checkTyping);
@@ -2105,39 +2900,28 @@
       }, 500);
     }
     
-    // 阶段三加载动画：先显示系统处理，再显示脚本内容
+    // 阶段三加载动画：先显示加载状态，再显示分镜内容
     function loadStageThreeWithAnimation() {
       var stageDetailSection = document.querySelector('.stage-detail-section');
       
-      // 先只显示系统处理部分
+      // 显示加载状态
       stageDetailSection.innerHTML = `
-        <div class="stage-card">
-          <div>
-            <div class="section-title">系统处理</div>
-            <div class="system-action loading-action">
-              <span class="action-icon loading-icon">📝</span>
-              <span class="action-text">根据你选定的创意灵感，我将为你生成专业的视频脚本，包含完整的台词、镜头语言、时长建议等内容，你可以选择确认或进行微调</span>
-            </div>
-          </div>
-          <div style="opacity: 0.3;">
-            <div class="section-title">脚本设计</div>
-            <div style="padding: 16px; background: #f5f5f5; border-radius: 8px; text-align: center; color: #999; font-size: 13px;">
-              正在生成脚本...
-            </div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; padding: 40px;">
+          <div style="width: 64px; height: 64px; border: 4px solid #E8F0FE; border-top-color: #0066FF; border-radius: 50%; animation: spin 1.2s linear infinite;"></div>
+          <div style="margin-top: 20px; font-size: 16px; color: #333; font-weight: 500;">正在生成分镜...</div>
+          <div style="margin-top: 8px; font-size: 13px; color: #999;">分镜生成可能需要15-30分钟，你可以同时去创建新的创作任务</div>
+          <div style="margin-top: 24px; display: flex; align-items: center; gap: 8px;">
+            <span class="loading-dot" style="width: 8px; height: 8px; background: #0066FF; border-radius: 50%; animation: bounce 0.6s infinite 0s;"></span>
+            <span class="loading-dot" style="width: 8px; height: 8px; background: #0066FF; border-radius: 50%; animation: bounce 0.6s infinite 0.15s;"></span>
+            <span class="loading-dot" style="width: 8px; height: 8px; background: #0066FF; border-radius: 50%; animation: bounce 0.6s infinite 0.3s;"></span>
           </div>
         </div>
       `;
       
-      // 添加加载动画样式
-      var icon = stageDetailSection.querySelector('.loading-icon');
-      if (icon) {
-        icon.style.animation = 'pulse 1s infinite';
-      }
-      
-      // 模拟加载过程后显示完整内容
+      // 模拟加载过程后显示完整内容（3秒加载时间）
       setTimeout(function() {
         showStageThree();
-      }, 1500);
+      }, 3000);
     }
     
     function showStageThree() {
@@ -2487,8 +3271,8 @@
       }, 500);
     }
     
-    // 阶段四加载动画：先显示系统处理，再显示分镜内容
-    function loadStageFourWithAnimation() {
+    // 阶段三加载动画：先显示系统处理，再显示分镜内容
+    function loadStageThreeWithAnimation() {
       var stageDetailSection = document.querySelector('.stage-detail-section');
       
       // 先只显示系统处理部分
@@ -2518,11 +3302,11 @@
       
       // 模拟加载过程后显示完整内容
       setTimeout(function() {
-        showStageFour();
+        showStageThree();
       }, 1500);
     }
     
-    function showStageFour() {
+    function showStageThree() {
       var stageDetailSection = document.querySelector('.stage-detail-section');
       stageDetailSection.innerHTML = `
         <div class="stage-card">
@@ -2530,7 +3314,7 @@
             <div class="section-title">系统处理</div>
             <div class="system-action">
               <span class="action-icon">🎬</span>
-              <span class="action-text">根据脚本内容，我将为你生成每个镜头的预览画面，鼠标悬停可自动播放，支持裁剪画面帧、修改音色等操作</span>
+              <span class="action-text">1. 根据脚本内容，我将为你生成每个镜头的预览画面，鼠标悬停可自动播放，支持裁剪画面帧、修改音色等操作<br>2. 分镜生成需要约15-30分钟时间，你可以同时去创建新的创作任务</span>
             </div>
           </div>
           
@@ -2556,20 +3340,17 @@
                       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                         <span class="time-display" style="color: white; font-size: 12px;">00:00/00:00</span>
                         <div style="display: flex; gap: 8px;">
-                          <button class="control-btn" onclick="cropFrame(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="裁剪画面帧">
+                          <button class="control-btn" onclick="cropFrame(this)" style="height: 28px; padding: 0 10px; background: rgba(255,255,255,0.2); border: none; border-radius: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;" title="裁剪画面帧">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                               <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM6 20c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM19 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
                             </svg>
+                            <span style="font-size: 12px; color: white;">裁剪</span>
                           </button>
-                          <button class="control-btn" onclick="changeVoice(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改音色">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                              <path d="M12 14c1.66 0 2.99-1.34 2.99-3S13.66 8 12 8c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-1-9v4H8l-5 5v2h18v-2l-5-5h-3V5z"/>
-                            </svg>
-                          </button>
-                          <button class="control-btn" onclick="changeMusic(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
+                          <button class="control-btn" onclick="showScriptModal(this)" style="height: 28px; padding: 0 10px; background: #0066FF; border: none; border-radius: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;" title="分镜生成">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
                             </svg>
+                            <span style="font-size: 12px; color: white;">重新优化</span>
                           </button>
                         </div>
                       </div>
@@ -2598,20 +3379,17 @@
                       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                         <span class="time-display" style="color: white; font-size: 12px;">00:00/00:00</span>
                         <div style="display: flex; gap: 8px;">
-                          <button class="control-btn" onclick="cropFrame(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="裁剪画面帧">
+                          <button class="control-btn" onclick="cropFrame(this)" style="height: 28px; padding: 0 10px; background: rgba(255,255,255,0.2); border: none; border-radius: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;" title="裁剪画面帧">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                               <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM6 20c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM19 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
                             </svg>
+                            <span style="font-size: 12px; color: white;">裁剪</span>
                           </button>
-                          <button class="control-btn" onclick="changeVoice(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改音色">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                              <path d="M12 14c1.66 0 2.99-1.34 2.99-3S13.66 8 12 8c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-1-9v4H8l-5 5v2h18v-2l-5-5h-3V5z"/>
-                            </svg>
-                          </button>
-                          <button class="control-btn" onclick="changeMusic(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
+                          <button class="control-btn" onclick="showScriptModal(this)" style="height: 28px; padding: 0 10px; background: #0066FF; border: none; border-radius: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;" title="分镜生成">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
                             </svg>
+                            <span style="font-size: 12px; color: white;">重新优化</span>
                           </button>
                         </div>
                       </div>
@@ -2640,20 +3418,17 @@
                       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                         <span class="time-display" style="color: white; font-size: 12px;">00:00/00:00</span>
                         <div style="display: flex; gap: 8px;">
-                          <button class="control-btn" onclick="cropFrame(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="裁剪画面帧">
+                          <button class="control-btn" onclick="cropFrame(this)" style="height: 28px; padding: 0 10px; background: rgba(255,255,255,0.2); border: none; border-radius: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;" title="裁剪画面帧">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                               <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM6 20c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM19 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
                             </svg>
+                            <span style="font-size: 12px; color: white;">裁剪</span>
                           </button>
-                          <button class="control-btn" onclick="changeVoice(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改音色">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                              <path d="M12 14c1.66 0 2.99-1.34 2.99-3S13.66 8 12 8c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-1-9v4H8l-5 5v2h18v-2l-5-5h-3V5z"/>
-                            </svg>
-                          </button>
-                          <button class="control-btn" onclick="changeMusic(this)" style="width: 28px; height: 28px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
+                          <button class="control-btn" onclick="showScriptModal(this)" style="height: 28px; padding: 0 10px; background: #0066FF; border: none; border-radius: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;" title="分镜生成">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
                             </svg>
+                            <span style="font-size: 12px; color: white;">重新优化</span>
                           </button>
                         </div>
                       </div>
@@ -2747,6 +3522,9 @@
     }
     
     function confirmStageFourAndGoNext() {
+      // 添加用户消息
+      addUserMessage();
+      
       var messageContainer = document.querySelector('.chat-messages');
       var newMessage = document.createElement('div');
       newMessage.className = 'message ai';
@@ -2761,7 +3539,7 @@
       messageContainer.scrollTop = messageContainer.scrollHeight;
       
       var textElement = newMessage.querySelector('.message-text');
-      var aiMessage = '太好了，我们已经完成了大部分创作工作，最后让我们看下成片效果吧，你依然可以在成片中修改背景音乐、贴纸、字幕等哦';
+      var aiMessage = '太好了，我们已经完成了大部分创作工作，最后让我们看下成片效果吧！你可以在成片中修改背景音乐哦。成片需要15-30分钟，你可以干点别的，生成完后在历史任务打开这个任务就能看到';
       
       // 清空右侧内容，显示待加载状态
       var stageDetailSection = document.querySelector('.stage-detail-section');
@@ -2782,14 +3560,14 @@
         var checkTyping = setInterval(function() {
           if (!textElement.classList.contains('typing')) {
             clearInterval(checkTyping);
-            loadStageFiveWithAnimation();
+            loadStageFourWithAnimation();
           }
         }, 100);
       }, 500);
     }
     
-    // 阶段五加载动画：先显示系统处理，再显示成片内容
-    function loadStageFiveWithAnimation() {
+    // 阶段四加载动画：先显示系统处理，再显示成片内容
+    function loadStageFourWithAnimation() {
       var stageDetailSection = document.querySelector('.stage-detail-section');
       
       // 先只显示系统处理部分
@@ -2799,7 +3577,7 @@
             <div class="section-title">系统处理</div>
             <div class="system-action loading-action">
               <span class="action-icon loading-icon">✨</span>
-              <span class="action-text">根据分镜画面，我将为你合成最终成片，你可以在成片中修改背景音乐、添加贴纸和字幕等操作</span>
+              <span class="action-text">根据前面所有阶段的内容，我将为你合成最终的视频成片，鼠标悬停视频自动播放，支持修改背景音乐</span>
             </div>
           </div>
           <div style="opacity: 0.3;">
@@ -2819,14 +3597,14 @@
       
       // 模拟加载过程后显示完整内容
       setTimeout(function() {
-        showStageFive();
+        showStageFour();
       }, 1500);
     }
     
     var currentStickers = [];
     var currentSubtitles = ['试试这款气垫，遮瑕又轻薄！', '持妆八小时不脱妆', '一步搞定防晒遮瑕'];
     
-    function showStageFive() {
+    function showStageFour() {
       var stageDetailSection = document.querySelector('.stage-detail-section');
       stageDetailSection.innerHTML = `
         <div class="stage-card">
@@ -2834,7 +3612,7 @@
             <div class="section-title">系统处理</div>
             <div class="system-action">
               <span class="action-icon">🎉</span>
-              <span class="action-text">根据前面所有阶段的内容，我将为你合成最终的视频成片，鼠标悬停视频自动播放，支持修改背景音乐、添加/删除贴纸、添加/删除字幕</span>
+              <span class="action-text">根据前面所有阶段的内容，我将为你合成最终的视频成片，鼠标悬停视频自动播放，支持修改背景音乐</span>
             </div>
           </div>
           
@@ -2855,22 +3633,6 @@
                           <path d="M8 5v14l11-7z"/>
                         </svg>
                       </div>
-                      
-                      <div id="videoStickers" style="position: absolute; inset: 0; pointer-events: none;">
-                        ${currentStickers.map((sticker, index) => `
-                          <div class="sticker-item" data-index="${index}" style="position: absolute; top: ${sticker.top}%; left: ${sticker.left}%; font-size: ${sticker.size}px; cursor: pointer; pointer-events: auto;" onmouseenter="showStickerControls(this)" onmouseleave="hideStickerControls(this)">
-                            ${sticker.emoji}
-                            <button class="sticker-delete" onclick="removeSticker(${index})" style="position: absolute; top: -8px; right: -8px; width: 16px; height: 16px; background: red; border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: none;">×</button>
-                          </div>
-                        `).join('')}
-                      </div>
-                      
-                      <div id="videoSubtitles" style="position: absolute; bottom: 80px; left: 16px; right: 16px; pointer-events: none;">
-                        <div class="subtitle-item" style="background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 4px; color: white; font-size: 14px; text-align: center; margin-bottom: 8px; cursor: pointer; pointer-events: auto;" onmouseenter="showSubtitleControls(this)" onmouseleave="hideSubtitleControls(this)">
-                          ${currentSubtitles[0]}
-                          <button class="subtitle-delete" onclick="removeSubtitle(0)" style="position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: red; border-radius: 50%; color: white; font-size: 10px; border: none; cursor: pointer; display: none;">×</button>
-                        </div>
-                      </div>
                     </div>
                     
                     <div style="padding: 16px; background: #1a1a1a;">
@@ -2883,16 +3645,6 @@
                           <button onclick="changeBackgroundMusic()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="修改背景音乐">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                            </svg>
-                          </button>
-                          <button onclick="addSticker()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="添加贴纸">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-                            </svg>
-                          </button>
-                          <button onclick="addSubtitle()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="添加字幕">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H6v-2h10v2zm0-4H6v-2h10v2zm-3-5l3.5-3.5L13 9H6V7h7z"/>
                             </svg>
                           </button>
                         </div>
@@ -2909,31 +3661,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            
-            <div style="margin-top: 16px;">
-              <div class="section-title" style="display: flex; align-items: center;">当前贴纸列表<span style="font-size: 11px; color: #999; margin-left: 4px; font-weight: normal;">点击删除贴纸</span></div>
-              <div id="stickerList" style="display: flex; flex-wrap: gap: 12px; gap: 12px; padding: 12px; background: #f5f7fa; border-radius: 8px;">
-                ${currentStickers.map((sticker, index) => `
-                  <div class="sticker-tag" data-index="${index}" style="padding: 8px 12px; background: #fff; border: 1px solid #e8e8e8; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="removeSticker(${index})">
-                    <span style="font-size: 20px;">${sticker.emoji}</span>
-                    <span style="font-size: 12px; color: #666;">${sticker.name}</span>
-                    <span style="color: #999;">×</span>
-                  </div>
-                `).join('') || '<span style="color: #999; font-size: 12px;">暂无贴纸，点击上方按钮添加</span>'}
-              </div>
-            </div>
-            
-            <div style="margin-top: 16px;">
-              <div class="section-title" style="display: flex; align-items: center;">当前字幕列表<span style="font-size: 11px; color: #999; margin-left: 4px; font-weight: normal;">点击删除字幕</span></div>
-              <div id="subtitleList" style="padding: 12px; background: #f5f7fa; border-radius: 8px;">
-                ${currentSubtitles.map((subtitle, index) => `
-                  <div class="subtitle-tag" data-index="${index}" style="padding: 8px 12px; background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 8px;" onclick="removeSubtitle(${index})">
-                    <span style="font-size: 12px; color: #666;">${subtitle}</span>
-                    <span style="color: #999;">×</span>
-                  </div>
-                `).join('')}
               </div>
             </div>
           </div>
@@ -3011,13 +3738,13 @@
           left: 20 + Math.random() * 60,
           size: 24 + Math.random() * 16
         });
-        showStageFive();
+        showStageFour();
       }
     }
     
     function removeSticker(index) {
       currentStickers.splice(index, 1);
-      showStageFive();
+      showStageFour();
     }
     
     function showStickerControls(element) {
@@ -3034,14 +3761,14 @@
       var subtitle = prompt('请输入字幕内容：', '');
       if (subtitle && subtitle.trim() !== '') {
         currentSubtitles.push(subtitle.trim());
-        showStageFive();
+        showStageFour();
       }
     }
     
     function removeSubtitle(index) {
       if (currentSubtitles.length > 1) {
         currentSubtitles.splice(index, 1);
-        showStageFive();
+        showStageFour();
       } else {
         alert('至少需要保留一条字幕！');
       }
@@ -3412,6 +4139,91 @@
       if (selectedMusic && selectedMusic >= 1 && selectedMusic <= 4) {
         alert('已切换背景音乐：' + musics[selectedMusic - 1]);
       }
+    }
+    
+    function showScriptModal(button) {
+      var storyboardItem = button.closest('.storyboard-item');
+      var title = storyboardItem.querySelector('div:last-child div:first-child').textContent;
+      var duration = storyboardItem.querySelector('div:last-child div:last-child').textContent;
+      
+      var scriptData = {
+        '镜头1：赶时间的窘境': {
+          lines: ['人物1：这妆也太斑驳了，新人聚餐怎么办啊！', '人物1：这也太尴尬了吧？痘印都看见了！', '人物1：这也太服帖了吧？', '人物1：持妆八小时都不脱，下午见客户也不怕。'],
+          scenes: ['近景：冷白顶光茶水间，人物1对着镜子轻拍自己的脸颊，指尖划过清透的底妆，眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。', '近景：冷白顶光茶水间，人物1靠在门框上，双臂交叉，看着人物2的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。']
+        },
+        '镜头2：产品初体验': {
+          lines: ['人物2：试试这个，一步搞定防晒遮瑕。', '人物1：这也太服帖了吧？痘印都看不见了！', '人物1：这也太服帖了吧？', '人物1：持妆八小时都不脱，下午见客户也不怕。'],
+          scenes: ['近景：冷白顶光茶水间，人物2从精致的手缝包里掏出一个精致的黑色气垫盒，盒面带有清晰品牌logo，双手递到人物1面前，指尖轻轻叩击气垫盒表面，眉梢微扬、眼神笃定；固定机位近景，镜头推近气垫盒logo细节。', '近景：冷白顶光茶水间，人物1对着镜子轻拍自己的脸颊，指尖划过清透的底妆，眼神从惊讶转为惊喜，嘴角不自觉上扬；固定机位近景，微微聚焦她的面部表情。', '近景：冷白顶光茶水间，人物2靠在门框上，双臂交叉，看着人物1的反应嘴角弧度微微加深，身体微微前倾；固定机位中景，镜头推近两人互动。', '中景：冷白顶光茶水间，镜头推近两人互动。']
+        },
+        '镜头3：产品展示': {
+          lines: ['人物1：这款气垫BB，防晒遮瑕一步到位。', '人物1：轻薄服帖，持妆一整天！', '人物1：姐妹们冲啊！'],
+          scenes: ['近景：干净白色背景、柔光均匀打亮。人物1面向镜头，右手托着黑色气垫盒，盒面品牌logo清晰可见，左手食指轻点气垫表面，眼神认真直视；固定机位近景，镜头聚焦气垫盒logo。', '特写：柔光下，气垫微气孔扑蘸取粉底，粉量均匀附着在粉扑上，镜头缓慢推近粉扑细节；微距特写，背景虚化。']
+        }
+      };
+      
+      var data = scriptData[title] || { lines: [], scenes: [] };
+      
+      var modal = document.createElement('div');
+      modal.id = 'scriptModal';
+      modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        border-radius: 12px;
+        width: 600px;
+        max-height: 80vh;
+        overflow: hidden;
+        z-index: 1000;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      `;
+      
+      var linesHtml = data.lines.map((line, index) => {
+        var characterNum = line.startsWith('人物2') ? 2 : 1;
+        var lineText = line.replace(/人物\d：/g, '');
+        return `
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <span style="color: #0066FF; font-weight: 500; min-width: 48px;">人物${characterNum}</span>
+          <input type="text" value="${lineText}" style="flex: 1; padding: 10px 12px; border: 2px solid #e8e8e8; border-radius: 6px; font-size: 13px; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'" />
+        </div>
+      `;
+      }).join('');
+      
+      var scenesHtml = data.scenes.map((scene, index) => `
+        <div style="margin-bottom: 10px;">
+          <textarea style="width: 100%; height: 70px; padding: 12px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 13px; resize: none; transition: all 0.2s; outline: none;" onfocus="this.style.borderColor='#0066FF'; this.style.boxShadow='0 0 0 3px rgba(0,102,255,0.1)'" onblur="this.style.borderColor='#e8e8e8'; this.style.boxShadow='none'">${scene}</textarea>
+        </div>
+      `).join('');
+      
+      modal.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f0f0f0;">
+          <div style="font-size: 16px; font-weight: 600; color: #333;">${title}</div>
+          <button onclick="document.getElementById('scriptModal').remove()" style="width: 28px; height: 28px; background: #f5f5f5; border: none; border-radius: 50%; color: #666; font-size: 16px; cursor: pointer;">×</button>
+        </div>
+        <div style="padding: 20px; overflow-y: auto; max-height: 60vh;">
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 13px; font-weight: 500; color: #666; margin-bottom: 12px;">人物台词</div>
+            ${linesHtml}
+          </div>
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 13px; font-weight: 500; color: #666; margin-bottom: 12px;">画面描述</div>
+            ${scenesHtml}
+          </div>
+          <div style="font-size: 13px; font-weight: 500; color: #666; margin-bottom: 12px;">时长：${duration}</div>
+        </div>
+        <div style="display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid #f0f0f0;">
+          <button onclick="document.getElementById('scriptModal').remove()" style="flex: 1; padding: 10px; background: #f5f5f5; border: none; border-radius: 8px; color: #666; font-size: 14px; cursor: pointer;">取消</button>
+          <button onclick="confirmScriptModal()" style="flex: 1; padding: 10px; background: #0066FF; border: none; border-radius: 8px; color: #fff; font-size: 14px; cursor: pointer;">确认</button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    function confirmScriptModal() {
+      alert('脚本已确认！');
+      document.getElementById('scriptModal').remove();
     }
     
     function editLine(element) {

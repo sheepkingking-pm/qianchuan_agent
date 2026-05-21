@@ -260,6 +260,25 @@
       font-size: 12px;
       color: #999;
     }
+    .task-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: auto;
+    }
+    .task-status.in-progress {
+      background: #e6f7ff;
+      color: #0066FF;
+    }
+    .task-status.completed {
+      background: #f5f5f5;
+      color: #999;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .center-panel {
       flex: 1;
       display: flex;
@@ -473,14 +492,9 @@
       font-size: 12px;
     }
     .video-info {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      position: relative;
       padding: 12px;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-      opacity: 0;
-      transition: opacity 0.2s ease;
+      background: #fff;
     }
     .video-card:hover .video-info {
       opacity: 1;
@@ -490,12 +504,43 @@
     }
     .video-title {
       font-size: 13px;
-      color: #fff;
+      color: #333;
       margin-bottom: 4px;
+      font-weight: 500;
     }
     .video-stats {
       font-size: 12px;
-      color: rgba(255, 255, 255, 0.8);
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .video-card-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .video-action-btn {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .video-action-btn.analyze {
+      background: #f5f7fa;
+      color: #666;
+      border: 1px solid #e8e8e8;
+    }
+    .video-action-btn.analyze:hover {
+      background: #e8e8e8;
+    }
+    .video-action-btn.create {
+      background: #f0f5ff;
+      color: #0066FF;
+      border: 1px solid #d9e4ff;
+    }
+    .video-action-btn.create:hover {
+      background: #e6f0ff;
     }
     .product-modal {
       position: fixed;
@@ -777,9 +822,6 @@
             <div class="logo-icon">AI</div>
             <div class="logo-text">创意 Agent</div>
           </div>
-          <button class="new-chat-btn-outline" onclick="createNewChat()">
-            <span>+</span> 新对话
-          </button>
         </div>
         <div class="menu-items">
           <div class="menu-item">
@@ -793,18 +835,27 @@
           </div>
         </div>
         <div class="history-section">
-          <div class="history-title">历史记录</div>
+          <div class="history-title">历史创作任务</div>
           <div class="task-item active" onclick="goToChat()">
-            <div class="task-title">DO双层养肤气垫粉饼</div>
-            <div class="task-time">刚刚</div>
+            <div style="flex: 1; min-width: 0;">
+              <div class="task-title">DO双层养肤气垫粉饼</div>
+              <div class="task-time">刚刚</div>
+            </div>
+            <span class="task-status in-progress">进行中</span>
           </div>
           <div class="task-item">
-            <div class="task-title">XX口红 - 情人节限定</div>
-            <div class="task-time">昨天</div>
+            <div style="flex: 1; min-width: 0;">
+              <div class="task-title">XX口红 - 情人节限定</div>
+              <div class="task-time">昨天</div>
+            </div>
+            <span class="task-status completed">已完成</span>
           </div>
           <div class="task-item">
-            <div class="task-title">XX精华液 - 补水保湿</div>
-            <div class="task-time">3天前</div>
+            <div style="flex: 1; min-width: 0;">
+              <div class="task-title">XX精华液 - 补水保湿</div>
+              <div class="task-time">3天前</div>
+            </div>
+            <span class="task-status completed">已完成</span>
           </div>
           <div class="view-all" style="color: #0066FF; font-size: 13px; padding: 8px 0; cursor: pointer;">查看全部 ></div>
         </div>
@@ -907,8 +958,12 @@
                 <div class="video-overlay">▶</div>
               </div>
               <div class="video-info">
-                <div class="video-title">行业爆款案例1</div>
-                <div class="video-stats">参考热门视频创意</div>
+
+
+                <div class="video-card-actions">
+                  <button class="video-action-btn analyze" onclick="analyzeVideo(event, 1)">帮我解析该视频创意</button>
+                  <button class="video-action-btn create" onclick="createFromVideo(event, 1)">参考该视频创作</button>
+                </div>
               </div>
             </div>
             <div class="video-card" onmouseenter="playVideo('video2')" onmouseleave="pauseVideo('video2')">
@@ -919,8 +974,12 @@
                 <div class="video-overlay">▶</div>
               </div>
               <div class="video-info">
-                <div class="video-title">行业爆款案例2</div>
-                <div class="video-stats">参考热门视频创意</div>
+
+
+                <div class="video-card-actions">
+                  <button class="video-action-btn analyze" onclick="analyzeVideo(event, 2)">帮我解析该视频创意</button>
+                  <button class="video-action-btn create" onclick="createFromVideo(event, 2)">参考该视频创作</button>
+                </div>
               </div>
             </div>
             <div class="video-card" onmouseenter="playVideo('video3')" onmouseleave="pauseVideo('video3')">
@@ -931,8 +990,12 @@
                 <div class="video-overlay">▶</div>
               </div>
               <div class="video-info">
-                <div class="video-title">行业爆款案例3</div>
-                <div class="video-stats">参考热门视频创意</div>
+
+
+                <div class="video-card-actions">
+                  <button class="video-action-btn analyze" onclick="analyzeVideo(event, 3)">帮我解析该视频创意</button>
+                  <button class="video-action-btn create" onclick="createFromVideo(event, 3)">参考该视频创作</button>
+                </div>
               </div>
             </div>
             <div class="video-card" onmouseenter="playVideo('video4')" onmouseleave="pauseVideo('video4')">
@@ -943,8 +1006,12 @@
                 <div class="video-overlay">▶</div>
               </div>
               <div class="video-info">
-                <div class="video-title">行业爆款案例4</div>
-                <div class="video-stats">参考热门视频创意</div>
+
+
+                <div class="video-card-actions">
+                  <button class="video-action-btn analyze" onclick="analyzeVideo(event, 4)">帮我解析该视频创意</button>
+                  <button class="video-action-btn create" onclick="createFromVideo(event, 4)">参考该视频创作</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1146,6 +1213,18 @@
       thumbnail.style.display = 'inline-block';
       
       closeModal();
+    }
+
+    function analyzeVideo(event, videoIndex) {
+      event.stopPropagation();
+      alert('正在分析美妆行业爆款视频' + videoIndex + '的创意...\n\n该功能将提取视频的：\n1. 脚本结构\n2. 镜头语言\n3. 配音风格\n4. 营销策略');
+    }
+
+    function createFromVideo(event, videoIndex) {
+      event.stopPropagation();
+      var input = document.getElementById('demandInput');
+      input.value = '参考美妆行业爆款视频' + videoIndex + '的创意，帮我创作一个类似的视频脚本';
+      goToChat();
     }
 
     function goToChat() {
